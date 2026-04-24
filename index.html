@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>ScorePal PRO | 32 Jogadores + 164 Jogos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a2a32 0%, #0a111a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.4);
+        }
+
+        .top-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .game-manager, .match-register {
+            background: #0b101acc;
+            border-radius: 40px;
+            padding: 18px 20px;
+            border: 1px solid #f1c40f55;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .match-register {
+            border-color: #2ecc7155;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffe5b4;
+            margin-bottom: 12px;
+            border-left: 4px solid #f39c12;
+            padding-left: 12px;
+        }
+
+        .game-controls, .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        input, select, button {
+            padding: 8px 14px;
+            border-radius: 60px;
+            border: none;
+            background: #fef3e0;
+            font-size: 0.9rem;
+        }
+
+        button {
+            background: #f39c12;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        button:active { transform: scale(0.96); }
+
+        .timer-panel {
+            background: #0b101acc;
+            border-radius: 40px;
+            padding: 12px 18px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .timer-display {
+            font-size: 2rem;
+            font-family: monospace;
+            background: black;
+            padding: 6px 20px;
+            border-radius: 50px;
+            color: cyan;
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, #fff5e6, #fff0df);
+            border-radius: 32px;
+            padding: 18px 16px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border: 1px solid #ffd966;
+        }
+
+        .player-name {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #2c3e50;
+            word-break: break-word;
+        }
+
+        .player-points {
+            font-size: 2.8rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 12px 0;
+            background: #2c3e50;
+            color: #f5f5dc;
+            border-radius: 50px;
+            padding: 8px;
+            font-family: monospace;
+        }
+
+        .score-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .score-btn {
+            font-size: 1.8rem;
+            width: 55px;
+            height: 55px;
+            border-radius: 40px;
+            border: none;
+            font-weight: bold;
+            background: #2c3e50;
+            color: white;
+        }
+
+        .score-btn.minus { background: #c0392b; }
+        .score-btn.plus { background: #27ae60; }
+
+        .player-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .player-actions button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 30px;
+            font-weight: bold;
+            border: none;
+        }
+
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: #00000055;
+            border-radius: 24px;
+            padding: 8px;
+            margin-top: 12px;
+        }
+        .history-item {
+            background: #1e2a36;
+            margin: 6px 0;
+            padding: 8px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+        .import-btn {
+            background: #2ecc71;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .import-games-btn {
+            background: #9b59b6;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .footer-msg {
+            text-align: center;
+            margin-top: 25px;
+            color: #aaa;
+            font-size: 0.75rem;
+        }
+        .game-stats {
+            font-size: 0.7rem;
+            background: #2c3e5033;
+            border-radius: 20px;
+            padding: 4px;
+            margin-top: 6px;
+            text-align: center;
+        }
+        @media (max-width: 700px) {
+            .players-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="top-section">
+        <div class="game-manager">
+            <div class="section-title">🎲 GERENCIAR JOGOS (164)</div>
+            <div class="game-controls">
+                <input type="text" id="newGameName" placeholder="Novo jogo" autocomplete="off">
+                <button id="addGameBtn">➕ Inserir</button>
+                <button id="importGamesBtn" class="import-games-btn">📚 Importar 164 Jogos</button>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span style="color:#ccc;">🎮 Jogo atual:</span>
+                <select id="gameSelector"></select>
+                <button id="deleteGameBtn" style="background:#e67e22;">🗑 Remover</button>
+            </div>
+            <div class="selected-game" id="selectedGameDisplay"></div>
+        </div>
+
+        <div class="match-register">
+            <div class="section-title">📋 REGISTRAR PARTIDA</div>
+            <button id="saveMatchBtn" class="import-btn" style="background:#2ecc71;">🏆 SALVAR PARTIDA ATUAL</button>
+            <button id="importPlayersBtn" class="import-btn" style="background:#3498db;">📚 Importar 32 Jogadores</button>
+            <div style="margin-top: 12px; font-weight: bold;">📜 Histórico de partidas</div>
+            <div id="historyList" class="history-list">Nenhuma partida</div>
+            <button id="clearHistoryBtn" style="background:#7f8c8d; width:100%; margin-top:8px;">Limpar histórico</button>
+        </div>
+    </div>
+
+    <div class="timer-panel">
+        <span class="timer-display" id="timerDisplay">00:00:00</span>
+        <div>
+            <button class="btn-timer" id="startTimerBtn">▶ Iniciar</button>
+            <button class="btn-timer" id="pauseTimerBtn">⏸ Pausar</button>
+            <button class="btn-timer" id="resetTimerBtn">⟳ Zerar</button>
+        </div>
+        <button class="global-reset" id="globalResetAllBtn">⚠️ Zerar partidas de todos</button>
+    </div>
+
+    <div style="display: flex; gap:10px; margin: 15px 0 0 0;">
+        <input type="text" id="newPlayerName" placeholder="Nome do jogador" style="flex:1;">
+        <button id="addPlayerBtn" style="background:#1abc9c;">+ Adicionar Jogador</button>
+    </div>
+
+    <div id="playersGrid" class="players-grid"></div>
+    <div class="footer-msg">💡 +1 / -1 = partidas do jogador | Registre partidas com o jogo selecionado</div>
+</div>
+
+<script>
+    // ---------- Estruturas ----------
+    let players = [];          // { id, name, partidas, lastGame?, lastDate? }
+    let nextId = 1;
+    let games = [];            // { id, name, totalPartidas, ultimaData } (totalPartidas e ultimaData são dos jogos em si, não dos jogadores)
+    let currentGameId = null;
+    let matches = [];
+
+    // Timer
+    let timerSeconds = 0;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    // ---------- Dados dos 32 jogadores (partidas individuais) ----------
+    const historicalPlayersData = [
+        { name: "Miro King Sqn", partidas: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
+        { name: "Thi Thiago", partidas: 501, lastGame: "Luna Maris", lastDate: "dez. 28, 2025" },
+        { name: "Coroinha Dani Dani", partidas: 361, lastGame: "Dominations: Road to Civilization", lastDate: "jul. 06, 2024" },
+        { name: "Lucas Takito", partidas: 330, lastGame: "Oak", lastDate: "jan. 20, 2026" },
+        { name: "MiMi", partidas: 251, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
+        { name: "Michael el el", partidas: 147, lastGame: "Luna Maris", lastDate: "jan. 05, 2026" },
+        { name: "Lucasqueijo", partidas: 146, lastGame: "Le Havre", lastDate: "jul. 21, 2023" },
+        { name: "Murility", partidas: 102, lastGame: "Blood Rage", lastDate: "dez. 01, 2023" },
+        { name: "MarcosBat", partidas: 57, lastGame: "Tikal", lastDate: "dez. 23, 2023" },
+        { name: "Juniores", partidas: 0, lastGame: "Reykholt", lastDate: "jun. 13, 2025" },
+        { name: "And prisonbreak", partidas: 0, lastGame: "Star Realms", lastDate: "set. 23, 2025" },
+        { name: "Thiagus beicus", partidas: 0, lastGame: "Peloponnes Card Game", lastDate: "abr. 28, 2024" },
+        { name: "Nicanor", partidas: 0, lastGame: "Founders of Teotihuacan", lastDate: "abr. 25, 2024" },
+        { name: "Leo lesma", partidas: 0, lastGame: "Tree sheers for master", lastDate: "jul. 15, 2025" },
+        { name: "Thiago da gabi", partidas: 0, lastGame: "Founders of Teotihuacan", lastDate: "mar. 30, 2024" },
+        { name: "Jhonatello", partidas: 0, lastGame: "Jórvík", lastDate: "set. 10, 2022" },
+        { name: "Gabriola", partidas: 0, lastGame: "Dead of Winter: A Crossroads Game", lastDate: "jun. 27, 2022" },
+        { name: "Pachecos", partidas: 0, lastGame: "Quissama", lastDate: "mar. 17, 2022" },
+        { name: "Wilwill", partidas: 14, lastGame: "Mexico", lastDate: "jul. 15, 2022" },
+        { name: "Maykinho", partidas: 13, lastGame: "Jórvík", lastDate: "set. 17, 2022" },
+        { name: "Rhuan", partidas: 12, lastGame: "Jórvík", lastDate: "set. 10, 2022" },
+        { name: "Lucas IV", partidas: 10, lastGame: "Jórvík", lastDate: "set. 10, 2022" },
+        { name: "Izaaaky", partidas: 7, lastGame: "Dead of Winter: A Crossroads Game", lastDate: "jun. 27, 2022" },
+        { name: "Bebel", partidas: 5, lastGame: "Origins: First Builders", lastDate: "nov. 02, 2024" },
+        { name: "Morenoooo", partidas: 5, lastGame: "Great Western Trail", lastDate: "dez. 17, 2023" },
+        { name: "Joooni", partidas: 4, lastGame: "Rallyman: DIRT", lastDate: "jul. 17, 2025" },
+        { name: "Kleber", partidas: 4, lastGame: "Century: Eastern Wonders", lastDate: "abr. 09, 2022" },
+        { name: "Diogo gordinho S2", partidas: 0, lastGame: "KeyForge: Call of the Archons", lastDate: "nov. 19, 2022" },
+        { name: "Lucas III", partidas: 0, lastGame: "Fields of Green", lastDate: "jan. 23, 2022" },
+        { name: "Viny vyni", partidas: 0, lastGame: "Tekhenu: Obelisk of the Sun", lastDate: "jun. 23, 2024" },
+        { name: "Winiwini", partidas: 0, lastGame: "Azul", lastDate: "set. 03, 2022" },
+        { name: "Craudinho", partidas: 0, lastGame: "Power Grid", lastDate: "jun. 04, 2022" }
+    ];
+
+    // ---------- Dados dos 164 jogos (fornecidos pelo usuário) ----------
+    const gamesRawText = `
+001s:Carcassone:Maredosul=20x30/03/19
+002s:Don Capollo = 30x - 03/09/19
+003s:Blacksmith brothers = 21x - 28/06/19
+004s: The book of madness =11x 15/07/2020
+005s: Robinson crusoe = 11x 10/03/2020
+006s:Space Cantina = 19 - 18/05/19
+007s: Ovni = 22x - 17/08/19
+008s: Epic Card Game = 11x - 29/06/2021
+009s: Costa Ruana = 13x - 08/07/2021
+0010s: Dwar7s winter = 13x - 09/11/22
+0011s: Bad bones = 10x - 31/01/23
+01:Jorvik=29x - 17/09/22
+02:Smash up =30x - 01/10/22
+03:Viticulture =33x - 26/11/22
+04:Imperial Settlers = 31x - 11/10/22
+05:Puerto Rico =33x - 19/01/23
+06:Manhattan project =32x -01/01/23
+07:Terra Mystica = 46x - 22/12/25
+08:Citadel = 32x - 16/01/23
+09:Takenoko = 32x - 13/01/23
+10:kemet = 33x - 16/04/23
+11:Ticket to ride europa =32x - 25/03/23
+12:Ascencion=35x - 30/04/23
+13:Taverna =32x - 06/05/23
+14: Blood Rage = 32x - 02/12/23
+15: Lê havre = 32x - 23/08/23
+16:AViagendemarcopólo=33x-11/06/23
+17: Hadara =10x - 02/11/22
+18: Stone Age = 32x - 02/10/23
+19: Cyclades = 32x - 17/10/23
+20: Suburbia = 32x - 10/12/23
+21: Inv. do Mar do Norte=32x -06/07/23
+22: Century Road Golen = 33x-26/09/23
+23: Great Western Trail = 31x-18/12/23
+24: Tikal = 33x - 29/12/23
+25: Euphoria =32x - 25/11/23
+26: Anime Saga = 30x-23/05/23
+27:Terraforms mars = 32x-17/09/23
+28:Lorenzo il maguinifico=31x-08/01/24
+29: Schyte = 33x-30/01/24
+30: Trajan = 33x - 22/02/24
+31: Mombasa = 31x - 20/01/24
+32: Elder Sign = 16x - 31/03/20
+33: Shawdonrun crossfire = 12x - 19/04/20
+34: Wall street 1920 = 22x - 30/03/24
+35: CIV = 31x - 29/02/24
+36: Peloponnes = 23x - 01/05/24
+37: Gunrunners = 31x - 13/06/24
+38: Tiny epic Galaxy = 24x - 22/07/24
+39: Otys = 24x - 18/07/24
+40: Luna = 25x - 25/08/2024
+41: Capital Lux = 24x - 03/08/2024
+42: Gugong = 24x - 13/10/2024
+43: Gnomopolis = 21x -13/09/2024
+44: Tigris e euphrates = 22x - 08/01/2025
+45: Splendor = 30x - 25/11/2020
+46: Praetor = 25x - 03/03/2025
+47: Kanban = 20x - 17/12/2024
+48: Dragon Castle = 24x - 26/10/2024
+49: Orla exterior SW = 22x - 15/03/2025
+50: Blue moon city = 24x - 15/11/2024
+51: Coimbra = 24x - 13/04/2025
+52: Dont turn back = 23x - 29/03/2025
+53: Cry havoc = 22x - 02/05/2025
+54: Pocket mars =24x - 03/05/2025
+55: La granja = 21x - 08/06/2025
+56: Kick ass = 10x - 10/04/2021
+57: Valeria Card Kingdons =22x - 14/06/2025
+58: Reykholt = 21x - 15/06/2025
+59: Ex libris = 22x - 20/06/2025
+60: Fae = 20x - 28/06/2025
+61: Tree cheers for master= 21x - 15/07/2025
+62:Conquistadoresdemidgar=21x-02/08/2025
+63: Downforce = 21x - 15/11/2026
+64: Victorians mastermind =22x - 25/08/2025
+65: Home dream = 21x - 17/11/2025
+66: Quests of valeria = 23x - 11/01/2026
+67: Kingdom builder = 26x - 04/04/2026
+68: Ninja Camp =11x - 01/11/22
+69: Noctiluca = 10x - 03/07/2021
+70: Keyforge = 11x -19/11/2022
+71: Bruxelas 1987 = 12x - 16/07/2021
+72: Dwar7s Fall = 20x - 27/07/2021
+73: Fallout = 10x - 28/07/2021
+74: Grand Hotel Áustria = 20x - 08/08/2021
+75: Alhambra = 21x - 19/08/2021
+76: Belfort = 23x - 28/08/2021
+77: Dominion = 23x - 31/08/2021
+78: Ethnos = 25x - 14/09/2021
+79: Pulsar 2849 = 21x - 01/09/2021
+80: New york 1901 = 21x - 10/09/2021
+81: Gold West = 23x - 15/09/2021
+82: Kingsburg = 10x - 23/10/2021
+83: Chimera station = 12x - 22/11/2021
+84: The Castle of burgundy = 22x- 12/12/2021
+85: Lords of Scotland = 23x - 18/12/2021
+86: Blackout Hong-Kong =12x -27/12/2021
+87: Rajas of Ganges= 23x - 30/12/2021
+88: Tsukiji = 13x - 08/01/2022
+89: Futuropia =11x - 12/01/2022
+90: Indian Summer = 14x - 14/01/2022
+91: Noria = 24x - 20/01/2022
+92: Fields of green = 23x - 26/01/2022
+93: Cidades Submersas = 10x - 28/02/2022
+94: The few of cursed =11x - 26/03/2022
+95: Caçadores da galáxia =23x - 29/03/2022
+96: Century: mars. orient.= 10x - 09/04/2022
+97: Tzolkien: The Mayan C. =23x - 13/04/2022
+98: Viscondes R. ocidental = 10x -18/04/2022
+99: Abyss = 24x - 30/04/2022
+100: Chaparral = 24x - 15/05/2022
+101: Agrícola = 26x - 27/05/2022
+102: Aquarium = 24x - 29/05/2022
+103: Power Grid = 24x - 16/06/2022
+104: Race for The galaxy = 15x -18/06/2022
+105: D. of W. noite sem fim =25x-26/06/2022
+106: Mexica = 27x - 14/07/2022
+107: Isle of Skyer =27x - 21/07/2022
+108: Jester =28x - 26/07/2022
+109: Village = 26x - 07/08/22
+110: Rock Roll manager =26x - 19/08/22
+111: Istambul = 27x - 26/08/22
+112: Azul = 35x - 04/09/22
+113: Barony = 31x - 07/09/22
+114: Catan Card game = 12x - 09/01/23
+115: Viral = 10x - 17/03/23
+116: Dogs card game = 10x - 01/04/23
+117: Dwar7s spring = 10x - 25/04/23
+118: Fallout Shelted = 10x - 01/05/23
+119: Tiny epic dinossauros = 10x - 09/05/23
+120: Ra = 11x - 29/05/23
+121: Whistle Stop = 12x - 19/06/23
+122: Tiny epic zombies = 10x - 28/06/23
+123: Heróis de San villano = 11x - 20/07/23
+124: Ancient terrible thing = 10x - 07/09/23
+125: Quadropolis = 10x - 23/09/23
+126: Caylus =10x - 07/10/23
+127: Eldrith Horror =20x - 01/11/23
+128: Cosmos = 10x - 11/11/23
+129: Triora Cidades das Bruxa= 10x-26/11/23
+130: Santo domingo = 10x - 10/12/23
+131: Modern art = 13x - 16/12/23
+132: Whichstones = 10x - 19/12/23
+133: Its Wonderfull world = 11x -05/01/24
+134: Arquitetos do R. ocidnt = 10x - 18/01/24
+135: Paris = 10x - 04/01/24
+136: Tiny epic Pirates = 11x - 15/03/24
+137: The founders teothuracan =12x-27/04/24
+138: Alubari = 10x - 09/06/24
+139 : Pandemia = 25x - 11/06/24
+140 : Battle for Rokugan = 11x - 15/06/24
+141: Tekhenu = 11x - 28/06/24
+142: Dominations = 10x - 10/07/24
+143: Tortuga = 15x - 15/0724
+144: Santa Maria = 12x - 10/08/24
+145:Zapotec = 11x - 01/09/2024
+146: Daymio = 11x - 29/09/2024
+147: Res Arcana = 11x-19/09/2024
+148: Origins = 11x-03/11/2024
+149: Reload = 10x-28/12/2024
+150: Corrosion = 10x-21/01/2025
+151: Maharaja = 10x - 01/02/2025
+152: Hippocrates = 10x - 01/03/2025
+153: Tawantinsuyu = 11x - 23/03/2025
+154: Northgart = 11x - 18/04/2025
+155: Bonfire = 12x - 21/04/2025
+156: Tindaya = 10x - 02/06/2025
+157: Gen 7 = 10x - 11/07/2025
+158: Rallyman:Dirt = 10x - 03/08/2025
+159: Star Realms = 11x - 23/09/2025
+160: Circadianos a primeira luz = 11x - 
+161: Anacrony = 10x - 22/11/2025
+162: Libertalia = 11x - 14/12/2025
+163: Luna Maria = 10x - 05/01/2026
+164: Oak = 10x -
+    `;
+
+    function parseGamesFromText() {
+        const lines = gamesRawText.split('\n');
+        const gamesList = [];
+        for (let line of lines) {
+            line = line.trim();
+            if (!line) continue;
+            // Extrair nome, total e data
+            let nome = "";
+            let totalPartidas = 0;
+            let ultimaData = "";
+            // Tentar separar por '='
+            let eqIndex = line.indexOf('=');
+            if (eqIndex === -1) continue;
+            let nomePart = line.substring(0, eqIndex).trim();
+            let resto = line.substring(eqIndex + 1).trim();
+            // Remover possíveis prefixos tipo "001s:" ou "01:" do nome
+            let nomeLimpo = nomePart.replace(/^\d+[s:]?\s*:?\s*/, '').trim();
+            // Se ainda tiver ':' no nome (caso Carcassone:Maredosul), substituir por espaço
+            nomeLimpo = nomeLimpo.replace(/:/g, ' ');
+            nome = nomeLimpo;
+            // Extrair total e data
+            let totalMatch = resto.match(/(\d+)\s*x/);
+            if (totalMatch) totalPartidas = parseInt(totalMatch[1]);
+            // Extrair data: após o traço ou após o número
+            let dataMatch = resto.match(/-\s*(.+)$/);
+            if (dataMatch) {
+                ultimaData = dataMatch[1].trim();
+                // limpar possíveis espaços e barras
+                ultimaData = ultimaData.replace(/^[\s\-]+/, '');
+            } else {
+                // tentar pegar data direto se tiver formato dd/mm/aa
+                let dataRaw = resto.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
+                if (dataRaw) ultimaData = dataRaw[1];
+            }
+            if (ultimaData === "") ultimaData = "data desconhecida";
+            gamesList.push({ name: nome, totalPartidas, ultimaData });
+        }
+        return gamesList;
+    }
+
+    function importGames() {
+        const parsedGames = parseGamesFromText();
+        let added = 0;
+        for (const g of parsedGames) {
+            if (!gam
