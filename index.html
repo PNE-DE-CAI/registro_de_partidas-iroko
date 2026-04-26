@@ -9,8 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
     <style>
-        /* Copie aqui o CSS completo do seu arquivo original (está no mesmo estilo) */
-        * { margin:0; padding:0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #0f766e;
             --primary-light: #14b8a6;
@@ -35,7 +34,7 @@
         .logo-section { display: flex; align-items: center; gap: 20px; }
         .logo-img { width: 70px; height: 70px; border-radius: 15px; background: rgba(255,255,255,0.1); padding: 10px; border: 2px solid var(--primary-light); }
         .header-title h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-light), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header-stats { display: flex; gap: 20px; align-items: center; }
+        .header-stats { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
         .stat-item { background: rgba(20,184,166,0.1); padding: 15px 25px; border-radius: 12px; text-align: center; }
         .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
         .stat-label { font-size: 0.8rem; color: var(--text-secondary); }
@@ -50,9 +49,10 @@
         .card:hover { border-color: var(--primary-light); box-shadow: 0 8px 32px rgba(20,184,166,0.15); transform: translateY(-2px); }
         .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; }
-        input, select, textarea { width: 100%; padding: 12px 16px; background: var(--bg-card-light); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 0.95rem; }
-        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select, textarea { width: 100%; padding: 12px 16px; background: var(--bg-card-light); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 0.95rem; outline: none; }
+        input:focus, select:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(20,184,166,0.2); }
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; }
         .btn-secondary { background: var(--bg-card-light); color: var(--text-primary); border: 1px solid var(--border); }
         .btn-danger { background: var(--danger); color: white; }
@@ -62,9 +62,10 @@
         .player-card { background: linear-gradient(135deg, rgba(20,184,166,0.1) 0%, rgba(245,158,11,0.05) 100%); border: 1px solid rgba(20,184,166,0.2); border-radius: 14px; padding: 18px; margin-bottom: 15px; }
         .player-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .player-name { font-size: 1.1rem; font-weight: 700; }
-        .player-stats { display: flex; gap: 20px; }
+        .player-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+        .player-stat-item { min-width: 70px; }
         .player-stat-value { font-size: 1.3rem; font-weight: 700; color: var(--primary-light); }
-        .player-stat-label { font-size: 0.75rem; color: var(--text-secondary); }
+        .player-stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; margin-top: 4px; }
         .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
         .badge-primary { background: rgba(20,184,166,0.2); color: var(--primary-light); }
         .badge-success { background: rgba(16,185,129,0.2); color: var(--success); }
@@ -75,15 +76,22 @@
         .rank-badge.silver { background: linear-gradient(135deg, #e5e7eb, #d1d5db); color: #1f2937; }
         .rank-badge.bronze { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
         .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
-        .players-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .player-checkbox-label { display: block; padding: 12px; background: var(--bg-card-light); border: 2px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; }
-        .player-checkbox input:checked + .player-checkbox-label { background: var(--primary); color: white; border-color: var(--primary-light); }
-        .scoreboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .players-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; max-height: 300px; overflow-y: auto; padding: 4px; }
+        .player-checkbox { position: relative; cursor: pointer; }
+        .player-checkbox input { position: absolute; opacity: 0; }
+        .player-checkbox-label { display: block; padding: 10px; background: var(--bg-card-light); border: 2px solid var(--border); border-radius: 10px; text-align: center; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .player-checkbox input:checked + .player-checkbox-label { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border-color: var(--primary-light); }
+        .scoreboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .player-scoreboard { background: rgba(20,184,166,0.1); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; }
-        .scoreboard-score { font-size: 2.5rem; font-weight: 800; color: var(--primary-light); }
-        .score-button { padding: 8px; border-radius: 8px; font-weight: 700; cursor: pointer; background: rgba(255,255,255,0.1); color: var(--text-primary); margin: 4px; }
-        .match-timer { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; background: rgba(20,184,166,0.15); border-radius: 14px; margin-bottom: 20px; }
-        .timer-value { font-size: 2.5rem; font-weight: 800; font-family: monospace; color: var(--primary-light); }
+        .scoreboard-score { font-size: 2.5rem; font-weight: 800; color: var(--primary-light); font-family: monospace; margin: 10px 0; }
+        .score-button { padding: 8px 12px; border-radius: 8px; font-weight: 700; cursor: pointer; background: rgba(255,255,255,0.1); color: var(--text-primary); margin: 4px; border: none; transition: 0.1s; }
+        .score-button:hover { background: rgba(20,184,166,0.4); }
+        .match-timer { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; background: rgba(20,184,166,0.15); border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+        .timer-value { font-size: 2.5rem; font-weight: 800; font-family: monospace; color: var(--primary-light); letter-spacing: 2px; }
+        .timer-btn { padding: 8px 16px; border-radius: 30px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; }
+        .timer-btn.play { background: var(--success); color: white; }
+        .timer-btn.pause { background: var(--accent); color: white; }
+        .timer-btn.reset { background: var(--danger); color: white; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @media (max-width: 768px) { .header { flex-direction: column; text-align: center; } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
     </style>
@@ -96,9 +104,9 @@
             <div class="card-title" style="justify-content: center;">🔐 Autenticação</div>
             <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="seu@email.com"></div>
             <div class="form-group"><label>Senha</label><input type="password" id="authPassword" placeholder="Sua senha"></div>
-            <button class="btn btn-primary btn-block" onclick="loginUser()">🔓 Entrar</button>
-            <button class="btn btn-secondary btn-block" onclick="registerUser()" style="margin-top: 10px;">📝 Criar Conta</button>
-            <div class="empty-state" style="margin-top: 15px; font-size: 0.85rem;">IROKO-TEC</div>
+            <button class="btn btn-primary btn-block" id="authLoginBtn">🔓 Entrar</button>
+            <button class="btn btn-secondary btn-block" id="authRegisterBtn" style="margin-top: 10px;">📝 Criar Conta</button>
+            <div class="empty-state" style="margin-top: 15px; font-size: 0.85rem;">Demo: teste@iroko.com / senha123</div>
         </div>
     </div>
 
@@ -110,23 +118,23 @@
                 <div class="stat-item"><div class="stat-value" id="totalPlayers">0</div><div class="stat-label">Jogadores</div></div>
                 <div class="stat-item"><div class="stat-value" id="totalMatches">0</div><div class="stat-label">Partidas</div></div>
                 <div class="stat-item"><div class="stat-value" id="totalGames">0</div><div class="stat-label">Jogos</div></div>
-                <button class="btn btn-secondary" onclick="logoutUser()">🚪 Sair</button>
+                <button class="btn btn-secondary" id="logoutBtn">🚪 Sair</button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-            <button class="tab-btn" onclick="switchTab('register')">➕ Registrar Partida</button>
-            <button class="tab-btn" onclick="switchTab('players')">👥 Jogadores</button>
-            <button class="tab-btn" onclick="switchTab('games')">🎮 Jogos</button>
-            <button class="tab-btn" onclick="switchTab('analytics')">📈 Análises</button>
+            <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+            <button class="tab-btn" data-tab="register">➕ Registrar Partida</button>
+            <button class="tab-btn" data-tab="players">👥 Jogadores</button>
+            <button class="tab-btn" data-tab="games">🎮 Jogos</button>
+            <button class="tab-btn" data-tab="analytics">📈 Análises</button>
         </div>
 
         <!-- Dashboard -->
         <div id="dashboard" class="tab-content active">
             <div class="grid-2">
-                <div class="card"><div class="card-title">🔍 Filtrar Jogadores</div><input type="text" id="playerFilter" placeholder="Nome..." onkeyup="filterAndRenderPlayers()"><button class="btn btn-secondary btn-small" onclick="clearPlayerFilter()" style="margin-top: 8px;">Limpar</button></div>
-                <div class="card"><div class="card-title">🔍 Filtrar Jogos</div><input type="text" id="gameFilter" placeholder="Nome..." onkeyup="filterAndRenderGames()"><button class="btn btn-secondary btn-small" onclick="clearGameFilter()" style="margin-top: 8px;">Limpar</button></div>
+                <div class="card"><div class="card-title">🔍 Filtrar Jogadores</div><input type="text" id="playerFilter" placeholder="Nome..." class="filter-input"><button class="btn btn-secondary btn-small" id="clearPlayerFilter" style="margin-top: 8px;">Limpar</button></div>
+                <div class="card"><div class="card-title">🔍 Filtrar Jogos</div><input type="text" id="gameFilter" placeholder="Nome..." class="filter-input"><button class="btn btn-secondary btn-small" id="clearGameFilter" style="margin-top: 8px;">Limpar</button></div>
             </div>
             <div class="grid-2">
                 <div class="card"><div class="card-title">🏆 Ranking de Vitórias</div><table class="ranking-table"><thead><tr><th>Pos</th><th>Jogador</th><th>Vitórias</th><th>Taxa</th></tr></thead><tbody id="winsRanking"></tbody></table></div>
@@ -141,22 +149,22 @@
         <div id="register" class="tab-content">
             <div class="card">
                 <div class="card-title">➕ Registrar Nova Partida</div>
-                <div class="form-group"><label>Jogo</label><select id="gameSelect" onchange="updateGameInfo()"><option value="">Selecione</option></select></div>
+                <div class="form-group"><label>Jogo</label><select id="gameSelect"><option value="">Selecione</option></select></div>
                 <div id="gameInfo" style="display: none; background: rgba(20,184,166,0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px;"></div>
                 <div class="form-group"><label>Selecione os Jogadores (até 4)</label><div id="playersSelectionGrid" class="players-selection-grid"></div></div>
-                <div class="card" style="border:2px solid var(--primary); margin-bottom:20px"><div class="card-title">⏱️ Cronômetro</div><div class="match-timer"><div class="timer-value" id="matchTimerDisplay">00:00:00</div><div><button class="timer-btn play" onclick="startMatchTimer()">▶ Play</button><button class="timer-btn pause" onclick="pauseMatchTimer()">⏸ Pause</button><button class="timer-btn reset" onclick="resetMatchTimer()">↻ Reset</button></div></div></div>
+                <div class="card" style="border:2px solid var(--primary); margin-bottom:20px"><div class="card-title">⏱️ Cronômetro</div><div class="match-timer"><div class="timer-value" id="matchTimerDisplay">00:00:00</div><div><button class="timer-btn play" id="matchTimerPlay">▶ Play</button><button class="timer-btn pause" id="matchTimerPause">⏸ Pause</button><button class="timer-btn reset" id="matchTimerReset">↻ Reset</button></div></div></div>
                 <div id="scoreboardContainer" style="display: none;"><h3>📊 Placar</h3><div class="scoreboard" id="matchScoreboard"></div></div>
-                <button class="btn btn-primary btn-block" onclick="startMatch()">🎮 Iniciar Contagem</button>
-                <button class="btn btn-success btn-block" onclick="finishMatch()">✅ Finalizar e Registrar</button>
-                <button class="btn btn-secondary btn-block" onclick="resetMatchForm()">🔄 Limpar Tudo</button>
+                <button class="btn btn-primary btn-block" id="startMatchBtn">🎮 Iniciar Contagem</button>
+                <button class="btn btn-success btn-block" id="finishMatchBtn">✅ Finalizar e Registrar</button>
+                <button class="btn btn-secondary btn-block" id="resetMatchFormBtn">🔄 Limpar Tudo</button>
             </div>
         </div>
 
         <!-- Jogadores -->
         <div id="players" class="tab-content">
             <div class="grid-2">
-                <div class="card"><div class="card-title">👤 Adicionar Jogador</div><input type="text" id="playerName" placeholder="Nome"><button class="btn btn-primary btn-block" onclick="addPlayer()" style="margin-top: 10px;">Adicionar</button></div>
-                <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" onclick="resetPlayers()">Restaurar Padrão</button><button class="btn btn-danger btn-block" onclick="deleteAllPlayers()" style="margin-top: 10px;">Remover Todos</button></div>
+                <div class="card"><div class="card-title">👤 Adicionar Jogador</div><input type="text" id="playerName" placeholder="Nome"><button class="btn btn-primary btn-block" id="addPlayerBtn" style="margin-top: 10px;">Adicionar</button></div>
+                <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" id="resetPlayersBtn">Restaurar Padrão</button><button class="btn btn-danger btn-block" id="deleteAllPlayersBtn" style="margin-top: 10px;">Remover Todos</button></div>
             </div>
             <div class="card"><div class="card-title">👥 Lista de Jogadores</div><div id="playersList"></div></div>
         </div>
@@ -164,8 +172,8 @@
         <!-- Jogos -->
         <div id="games" class="tab-content">
             <div class="grid-2">
-                <div class="card"><div class="card-title">🎮 Adicionar Jogo</div><input type="text" id="gameName" placeholder="Nome"><button class="btn btn-primary btn-block" onclick="addGame()" style="margin-top: 10px;">Adicionar</button></div>
-                <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" onclick="resetGames()">Restaurar Padrão</button><button class="btn btn-danger btn-block" onclick="deleteAllGames()" style="margin-top: 10px;">Remover Todos</button></div>
+                <div class="card"><div class="card-title">🎮 Adicionar Jogo</div><input type="text" id="gameName" placeholder="Nome"><button class="btn btn-primary btn-block" id="addGameBtn" style="margin-top: 10px;">Adicionar</button></div>
+                <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" id="resetGamesBtn">Restaurar Padrão</button><button class="btn btn-danger btn-block" id="deleteAllGamesBtn" style="margin-top: 10px;">Remover Todos</button></div>
             </div>
             <div class="card"><div class="card-title">🎲 Lista de Jogos</div><div id="gamesList"></div></div>
         </div>
@@ -176,7 +184,7 @@
 </div>
 
 <script>
-    // ============= CONFIGURAÇÃO FIREBASE (SUA) =============
+    // ============= CONFIGURAÇÃO FIREBASE =============
     const firebaseConfig = {
         apiKey: "AIzaSyBIGtPD05ECqbQaMszytLxOHDM-cQo0tzc",
         authDomain: "iroko-registro-de-partidas.firebaseapp.com",
@@ -185,8 +193,6 @@
         messagingSenderId: "1011859816539",
         appId: "1:1011859816539:web:fdc4cba3ca2b22ff493f7e"
     };
-
-    // Inicializar Firebase ANTES de qualquer função que o use
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
@@ -197,15 +203,13 @@
     let games = [];
     let matches = [];
     let charts = {};
-
-    // Variáveis da partida em andamento
     let currentMatchPlayers = [];
     let currentMatchScores = {};
     let matchTimerSeconds = 0;
     let matchTimerInterval = null;
     let isMatchTimerRunning = false;
 
-    // ============= DADOS PADRÃO (32 jogadores) =============
+    // ============= DADOS PADRÃO (32 jogadores e 164 jogos) =============
     const DEFAULT_PLAYERS = [
         { name: "Miro King Sqn", wins: 0, matches: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
         { name: "Thi Thiago", wins: 0, matches: 501, lastGame: "Luna Maria", lastDate: "dez. 28, 2025" },
@@ -241,183 +245,8 @@
         { name: "Craudinho", wins: 0, matches: 0, lastGame: "Power Grid", lastDate: "jun. 04, 2022" }
     ];
 
-    // ============= DADOS PADRÃO (164 jogos - lista completa) =============
     const DEFAULT_GAMES = [
-        { name: "Carcassonne Maredosul", matches: 20, lastDate: "30/03/19" },
-        { name: "Don Capollo", matches: 30, lastDate: "03/09/19" },
-        { name: "Blacksmith Brothers", matches: 21, lastDate: "28/06/19" },
-        { name: "The Book of Madness", matches: 11, lastDate: "15/07/2020" },
-        { name: "Robinson Crusoe", matches: 11, lastDate: "10/03/2020" },
-        { name: "Space Cantina", matches: 19, lastDate: "18/05/19" },
-        { name: "Ovni", matches: 22, lastDate: "17/08/19" },
-        { name: "Epic Card Game", matches: 11, lastDate: "29/06/2021" },
-        { name: "Costa Ruana", matches: 13, lastDate: "08/07/2021" },
-        { name: "Dwar7s Winter", matches: 13, lastDate: "09/11/22" },
-        { name: "Bad Bones", matches: 10, lastDate: "31/01/23" },
-        { name: "Jorvik", matches: 29, lastDate: "17/09/22" },
-        { name: "Smash Up", matches: 30, lastDate: "01/10/22" },
-        { name: "Viticulture", matches: 33, lastDate: "26/11/22" },
-        { name: "Imperial Settlers", matches: 31, lastDate: "11/10/22" },
-        { name: "Puerto Rico", matches: 33, lastDate: "19/01/23" },
-        { name: "Manhattan Project", matches: 32, lastDate: "01/01/23" },
-        { name: "Terra Mystica", matches: 46, lastDate: "22/12/25" },
-        { name: "Citadel", matches: 32, lastDate: "16/01/23" },
-        { name: "Takenoko", matches: 32, lastDate: "13/01/23" },
-        { name: "Kemet", matches: 33, lastDate: "16/04/23" },
-        { name: "Ticket to Ride Europa", matches: 32, lastDate: "25/03/23" },
-        { name: "Ascension", matches: 35, lastDate: "30/04/23" },
-        { name: "Taverna", matches: 32, lastDate: "06/05/23" },
-        { name: "Blood Rage", matches: 32, lastDate: "02/12/23" },
-        { name: "Le Havre", matches: 32, lastDate: "23/08/23" },
-        { name: "A Viagem de Marco Pólo", matches: 33, lastDate: "11/06/23" },
-        { name: "Hadara", matches: 10, lastDate: "02/11/22" },
-        { name: "Stone Age", matches: 32, lastDate: "02/10/23" },
-        { name: "Cyclades", matches: 32, lastDate: "17/10/23" },
-        { name: "Suburbia", matches: 32, lastDate: "10/12/23" },
-        { name: "Investigadores do Mar do Norte", matches: 32, lastDate: "06/07/23" },
-        { name: "Century Road Golden", matches: 33, lastDate: "26/09/23" },
-        { name: "Great Western Trail", matches: 31, lastDate: "18/12/23" },
-        { name: "Tikal", matches: 33, lastDate: "29/12/23" },
-        { name: "Euphoria", matches: 32, lastDate: "25/11/23" },
-        { name: "Anime Saga", matches: 30, lastDate: "23/05/23" },
-        { name: "Terraforming Mars", matches: 32, lastDate: "17/09/23" },
-        { name: "Lorenzo il Magnifico", matches: 31, lastDate: "08/01/24" },
-        { name: "Scythe", matches: 33, lastDate: "30/01/24" },
-        { name: "Trajan", matches: 33, lastDate: "22/02/24" },
-        { name: "Mombasa", matches: 31, lastDate: "20/01/24" },
-        { name: "Elder Sign", matches: 16, lastDate: "31/03/20" },
-        { name: "Shadowrun Crossfire", matches: 12, lastDate: "19/04/20" },
-        { name: "Wall Street 1920", matches: 22, lastDate: "30/03/24" },
-        { name: "Civilization", matches: 31, lastDate: "29/02/24" },
-        { name: "Peloponnes", matches: 23, lastDate: "01/05/24" },
-        { name: "Gunrunners", matches: 31, lastDate: "13/06/24" },
-        { name: "Tiny Epic Galaxy", matches: 24, lastDate: "22/07/24" },
-        { name: "Otys", matches: 24, lastDate: "18/07/24" },
-        { name: "Luna", matches: 25, lastDate: "25/08/2024" },
-        { name: "Capital Lux", matches: 24, lastDate: "03/08/2024" },
-        { name: "Gugong", matches: 24, lastDate: "13/10/2024" },
-        { name: "Gnomopolis", matches: 21, lastDate: "13/09/2024" },
-        { name: "Tigris e Euphrates", matches: 22, lastDate: "08/01/2025" },
-        { name: "Splendor", matches: 30, lastDate: "25/11/2020" },
-        { name: "Praetor", matches: 25, lastDate: "03/03/2025" },
-        { name: "Kanban", matches: 20, lastDate: "17/12/2024" },
-        { name: "Dragon Castle", matches: 24, lastDate: "26/10/2024" },
-        { name: "Orla Exterior SW", matches: 22, lastDate: "15/03/2025" },
-        { name: "Blue Moon City", matches: 24, lastDate: "15/11/2024" },
-        { name: "Coimbra", matches: 24, lastDate: "13/04/2025" },
-        { name: "Dont Turn Back", matches: 23, lastDate: "29/03/2025" },
-        { name: "Cry Havoc", matches: 22, lastDate: "02/05/2025" },
-        { name: "Pocket Mars", matches: 24, lastDate: "03/05/2025" },
-        { name: "La Granja", matches: 21, lastDate: "08/06/2025" },
-        { name: "Kick Ass", matches: 10, lastDate: "10/04/2021" },
-        { name: "Valeria Card Kingdoms", matches: 22, lastDate: "14/06/2025" },
-        { name: "Reykholt", matches: 21, lastDate: "15/06/2025" },
-        { name: "Ex Libris", matches: 22, lastDate: "20/06/2025" },
-        { name: "Fae", matches: 20, lastDate: "28/06/2025" },
-        { name: "Tree Cheers for Master", matches: 21, lastDate: "15/07/2025" },
-        { name: "Conquistadores de Midgard", matches: 21, lastDate: "02/08/2025" },
-        { name: "Downforce", matches: 21, lastDate: "15/11/2026" },
-        { name: "Victorians Mastermind", matches: 22, lastDate: "25/08/2025" },
-        { name: "Home Dream", matches: 21, lastDate: "17/11/2025" },
-        { name: "Quests of Valeria", matches: 23, lastDate: "11/01/2026" },
-        { name: "Kingdom Builder", matches: 26, lastDate: "04/04/2026" },
-        { name: "Ninja Camp", matches: 11, lastDate: "01/11/22" },
-        { name: "Noctiluca", matches: 10, lastDate: "03/07/2021" },
-        { name: "Keyforge", matches: 11, lastDate: "19/11/2022" },
-        { name: "Bruxelas 1987", matches: 12, lastDate: "16/07/2021" },
-        { name: "Dwar7s Fall", matches: 20, lastDate: "27/07/2021" },
-        { name: "Fallout", matches: 10, lastDate: "28/07/2021" },
-        { name: "Grand Hotel Áustria", matches: 20, lastDate: "08/08/2021" },
-        { name: "Alhambra", matches: 21, lastDate: "19/08/2021" },
-        { name: "Belfort", matches: 23, lastDate: "28/08/2021" },
-        { name: "Dominion", matches: 23, lastDate: "31/08/2021" },
-        { name: "Ethnos", matches: 25, lastDate: "14/09/2021" },
-        { name: "Pulsar 2849", matches: 21, lastDate: "01/09/2021" },
-        { name: "New York 1901", matches: 21, lastDate: "10/09/2021" },
-        { name: "Gold West", matches: 23, lastDate: "15/09/2021" },
-        { name: "Kingsburg", matches: 10, lastDate: "23/10/2021" },
-        { name: "Chimera Station", matches: 12, lastDate: "22/11/2021" },
-        { name: "The Castle of Burgundy", matches: 22, lastDate: "12/12/2021" },
-        { name: "Lords of Scotland", matches: 23, lastDate: "18/12/2021" },
-        { name: "Blackout Hong Kong", matches: 12, lastDate: "27/12/2021" },
-        { name: "Rajas of Ganges", matches: 23, lastDate: "30/12/2021" },
-        { name: "Tsukiji", matches: 13, lastDate: "08/01/2022" },
-        { name: "Futuropia", matches: 11, lastDate: "12/01/2022" },
-        { name: "Indian Summer", matches: 14, lastDate: "14/01/2022" },
-        { name: "Noria", matches: 24, lastDate: "20/01/2022" },
-        { name: "Fields of Green", matches: 23, lastDate: "26/01/2022" },
-        { name: "Cidades Submersas", matches: 10, lastDate: "28/02/2022" },
-        { name: "The Few of Cursed", matches: 11, lastDate: "26/03/2022" },
-        { name: "Caçadores da Galáxia", matches: 23, lastDate: "29/03/2022" },
-        { name: "Century Mars Oriental", matches: 10, lastDate: "09/04/2022" },
-        { name: "Tzolkien The Mayan", matches: 23, lastDate: "13/04/2022" },
-        { name: "Viscondes Rota Ocidental", matches: 10, lastDate: "18/04/2022" },
-        { name: "Abyss", matches: 24, lastDate: "30/04/2022" },
-        { name: "Chaparral", matches: 24, lastDate: "15/05/2022" },
-        { name: "Agrícola", matches: 26, lastDate: "27/05/2022" },
-        { name: "Aquarium", matches: 24, lastDate: "29/05/2022" },
-        { name: "Power Grid", matches: 24, lastDate: "16/06/2022" },
-        { name: "Race for The Galaxy", matches: 15, lastDate: "18/06/2022" },
-        { name: "Dead of Winter", matches: 25, lastDate: "26/06/2022" },
-        { name: "Mexica", matches: 27, lastDate: "14/07/2022" },
-        { name: "Isle of Skye", matches: 27, lastDate: "21/07/2022" },
-        { name: "Jester", matches: 28, lastDate: "26/07/2022" },
-        { name: "Village", matches: 26, lastDate: "07/08/22" },
-        { name: "Rock Roll Manager", matches: 26, lastDate: "19/08/22" },
-        { name: "Istambul", matches: 27, lastDate: "26/08/22" },
-        { name: "Azul", matches: 35, lastDate: "04/09/22" },
-        { name: "Barony", matches: 31, lastDate: "07/09/22" },
-        { name: "Catan Card Game", matches: 12, lastDate: "09/01/23" },
-        { name: "Viral", matches: 10, lastDate: "17/03/23" },
-        { name: "Dogs Card Game", matches: 10, lastDate: "01/04/23" },
-        { name: "Dwar7s Spring", matches: 10, lastDate: "25/04/23" },
-        { name: "Fallout Shelter", matches: 10, lastDate: "01/05/23" },
-        { name: "Tiny Epic Dinosaurs", matches: 10, lastDate: "09/05/23" },
-        { name: "Ra", matches: 11, lastDate: "29/05/23" },
-        { name: "Whistle Stop", matches: 12, lastDate: "19/06/23" },
-        { name: "Tiny Epic Zombies", matches: 10, lastDate: "28/06/23" },
-        { name: "Heróis de San Villano", matches: 11, lastDate: "20/07/23" },
-        { name: "Ancient Terrible Thing", matches: 10, lastDate: "07/09/23" },
-        { name: "Quadropolis", matches: 10, lastDate: "23/09/23" },
-        { name: "Caylus", matches: 10, lastDate: "07/10/23" },
-        { name: "Eldritch Horror", matches: 20, lastDate: "01/11/23" },
-        { name: "Cosmos", matches: 10, lastDate: "11/11/23" },
-        { name: "Triora Cidades das Bruxas", matches: 10, lastDate: "26/11/23" },
-        { name: "Santo Domingo", matches: 10, lastDate: "10/12/23" },
-        { name: "Modern Art", matches: 13, lastDate: "16/12/23" },
-        { name: "Witchstones", matches: 10, lastDate: "19/12/23" },
-        { name: "Its a Wonderful World", matches: 11, lastDate: "05/01/24" },
-        { name: "Arquitetos do Rio Ocidental", matches: 10, lastDate: "18/01/24" },
-        { name: "Paris", matches: 10, lastDate: "04/01/24" },
-        { name: "Tiny Epic Pirates", matches: 11, lastDate: "15/03/24" },
-        { name: "Founders of Teotihuacan", matches: 12, lastDate: "27/04/24" },
-        { name: "Alubari", matches: 10, lastDate: "09/06/24" },
-        { name: "Pandemia", matches: 25, lastDate: "11/06/24" },
-        { name: "Battle for Rokugan", matches: 11, lastDate: "15/06/24" },
-        { name: "Tekhenu", matches: 11, lastDate: "28/06/24" },
-        { name: "Dominations", matches: 10, lastDate: "10/07/24" },
-        { name: "Tortuga", matches: 15, lastDate: "15/07/24" },
-        { name: "Santa Maria", matches: 12, lastDate: "10/08/24" },
-        { name: "Zapotec", matches: 11, lastDate: "01/09/2024" },
-        { name: "Daymio", matches: 11, lastDate: "29/09/2024" },
-        { name: "Res Arcana", matches: 11, lastDate: "19/09/2024" },
-        { name: "Origins", matches: 11, lastDate: "03/11/2024" },
-        { name: "Reload", matches: 10, lastDate: "28/12/2024" },
-        { name: "Corrosion", matches: 10, lastDate: "21/01/2025" },
-        { name: "Maharaja", matches: 10, lastDate: "01/02/2025" },
-        { name: "Hippocrates", matches: 10, lastDate: "01/03/2025" },
-        { name: "Tawantinsuyu", matches: 11, lastDate: "23/03/2025" },
-        { name: "Northgard", matches: 11, lastDate: "18/04/2025" },
-        { name: "Bonfire", matches: 12, lastDate: "21/04/2025" },
-        { name: "Tindaya", matches: 10, lastDate: "02/06/2025" },
-        { name: "Gen 7", matches: 10, lastDate: "11/07/2025" },
-        { name: "Rallyman Dirt", matches: 10, lastDate: "03/08/2025" },
-        { name: "Star Realms", matches: 11, lastDate: "23/09/2025" },
-        { name: "Circadianos", matches: 11, lastDate: "data desconhecida" },
-        { name: "Anacrony", matches: 10, lastDate: "22/11/2025" },
-        { name: "Libertalia", matches: 11, lastDate: "14/12/2025" },
-        { name: "Luna Maria", matches: 10, lastDate: "05/01/2026" },
-        { name: "Oak", matches: 10, lastDate: "data desconhecida" }
+        { name: "Carcassonne Maredosul", matches: 20, lastDate: "30/03/19" }, { name: "Don Capollo", matches: 30, lastDate: "03/09/19" }, { name: "Blacksmith Brothers", matches: 21, lastDate: "28/06/19" }, { name: "The Book of Madness", matches: 11, lastDate: "15/07/2020" }, { name: "Robinson Crusoe", matches: 11, lastDate: "10/03/2020" }, { name: "Space Cantina", matches: 19, lastDate: "18/05/19" }, { name: "Ovni", matches: 22, lastDate: "17/08/19" }, { name: "Epic Card Game", matches: 11, lastDate: "29/06/2021" }, { name: "Costa Ruana", matches: 13, lastDate: "08/07/2021" }, { name: "Dwar7s Winter", matches: 13, lastDate: "09/11/22" }, { name: "Bad Bones", matches: 10, lastDate: "31/01/23" }, { name: "Jorvik", matches: 29, lastDate: "17/09/22" }, { name: "Smash Up", matches: 30, lastDate: "01/10/22" }, { name: "Viticulture", matches: 33, lastDate: "26/11/22" }, { name: "Imperial Settlers", matches: 31, lastDate: "11/10/22" }, { name: "Puerto Rico", matches: 33, lastDate: "19/01/23" }, { name: "Manhattan Project", matches: 32, lastDate: "01/01/23" }, { name: "Terra Mystica", matches: 46, lastDate: "22/12/25" }, { name: "Citadel", matches: 32, lastDate: "16/01/23" }, { name: "Takenoko", matches: 32, lastDate: "13/01/23" }, { name: "Kemet", matches: 33, lastDate: "16/04/23" }, { name: "Ticket to Ride Europa", matches: 32, lastDate: "25/03/23" }, { name: "Ascension", matches: 35, lastDate: "30/04/23" }, { name: "Taverna", matches: 32, lastDate: "06/05/23" }, { name: "Blood Rage", matches: 32, lastDate: "02/12/23" }, { name: "Le Havre", matches: 32, lastDate: "23/08/23" }, { name: "A Viagem de Marco Pólo", matches: 33, lastDate: "11/06/23" }, { name: "Hadara", matches: 10, lastDate: "02/11/22" }, { name: "Stone Age", matches: 32, lastDate: "02/10/23" }, { name: "Cyclades", matches: 32, lastDate: "17/10/23" }, { name: "Suburbia", matches: 32, lastDate: "10/12/23" }, { name: "Investigadores do Mar do Norte", matches: 32, lastDate: "06/07/23" }, { name: "Century Road Golden", matches: 33, lastDate: "26/09/23" }, { name: "Great Western Trail", matches: 31, lastDate: "18/12/23" }, { name: "Tikal", matches: 33, lastDate: "29/12/23" }, { name: "Euphoria", matches: 32, lastDate: "25/11/23" }, { name: "Anime Saga", matches: 30, lastDate: "23/05/23" }, { name: "Terraforming Mars", matches: 32, lastDate: "17/09/23" }, { name: "Lorenzo il Magnifico", matches: 31, lastDate: "08/01/24" }, { name: "Scythe", matches: 33, lastDate: "30/01/24" }, { name: "Trajan", matches: 33, lastDate: "22/02/24" }, { name: "Mombasa", matches: 31, lastDate: "20/01/24" }, { name: "Elder Sign", matches: 16, lastDate: "31/03/20" }, { name: "Shadowrun Crossfire", matches: 12, lastDate: "19/04/20" }, { name: "Wall Street 1920", matches: 22, lastDate: "30/03/24" }, { name: "Civilization", matches: 31, lastDate: "29/02/24" }, { name: "Peloponnes", matches: 23, lastDate: "01/05/24" }, { name: "Gunrunners", matches: 31, lastDate: "13/06/24" }, { name: "Tiny Epic Galaxy", matches: 24, lastDate: "22/07/24" }, { name: "Otys", matches: 24, lastDate: "18/07/24" }, { name: "Luna", matches: 25, lastDate: "25/08/2024" }, { name: "Capital Lux", matches: 24, lastDate: "03/08/2024" }, { name: "Gugong", matches: 24, lastDate: "13/10/2024" }, { name: "Gnomopolis", matches: 21, lastDate: "13/09/2024" }, { name: "Tigris e Euphrates", matches: 22, lastDate: "08/01/2025" }, { name: "Splendor", matches: 30, lastDate: "25/11/2020" }, { name: "Praetor", matches: 25, lastDate: "03/03/2025" }, { name: "Kanban", matches: 20, lastDate: "17/12/2024" }, { name: "Dragon Castle", matches: 24, lastDate: "26/10/2024" }, { name: "Orla Exterior SW", matches: 22, lastDate: "15/03/2025" }, { name: "Blue Moon City", matches: 24, lastDate: "15/11/2024" }, { name: "Coimbra", matches: 24, lastDate: "13/04/2025" }, { name: "Dont Turn Back", matches: 23, lastDate: "29/03/2025" }, { name: "Cry Havoc", matches: 22, lastDate: "02/05/2025" }, { name: "Pocket Mars", matches: 24, lastDate: "03/05/2025" }, { name: "La Granja", matches: 21, lastDate: "08/06/2025" }, { name: "Kick Ass", matches: 10, lastDate: "10/04/2021" }, { name: "Valeria Card Kingdoms", matches: 22, lastDate: "14/06/2025" }, { name: "Reykholt", matches: 21, lastDate: "15/06/2025" }, { name: "Ex Libris", matches: 22, lastDate: "20/06/2025" }, { name: "Fae", matches: 20, lastDate: "28/06/2025" }, { name: "Tree Cheers for Master", matches: 21, lastDate: "15/07/2025" }, { name: "Conquistadores de Midgard", matches: 21, lastDate: "02/08/2025" }, { name: "Downforce", matches: 21, lastDate: "15/11/2026" }, { name: "Victorians Mastermind", matches: 22, lastDate: "25/08/2025" }, { name: "Home Dream", matches: 21, lastDate: "17/11/2025" }, { name: "Quests of Valeria", matches: 23, lastDate: "11/01/2026" }, { name: "Kingdom Builder", matches: 26, lastDate: "04/04/2026" }, { name: "Ninja Camp", matches: 11, lastDate: "01/11/22" }, { name: "Noctiluca", matches: 10, lastDate: "03/07/2021" }, { name: "Keyforge", matches: 11, lastDate: "19/11/2022" }, { name: "Bruxelas 1987", matches: 12, lastDate: "16/07/2021" }, { name: "Dwar7s Fall", matches: 20, lastDate: "27/07/2021" }, { name: "Fallout", matches: 10, lastDate: "28/07/2021" }, { name: "Grand Hotel Áustria", matches: 20, lastDate: "08/08/2021" }, { name: "Alhambra", matches: 21, lastDate: "19/08/2021" }, { name: "Belfort", matches: 23, lastDate: "28/08/2021" }, { name: "Dominion", matches: 23, lastDate: "31/08/2021" }, { name: "Ethnos", matches: 25, lastDate: "14/09/2021" }, { name: "Pulsar 2849", matches: 21, lastDate: "01/09/2021" }, { name: "New York 1901", matches: 21, lastDate: "10/09/2021" }, { name: "Gold West", matches: 23, lastDate: "15/09/2021" }, { name: "Kingsburg", matches: 10, lastDate: "23/10/2021" }, { name: "Chimera Station", matches: 12, lastDate: "22/11/2021" }, { name: "The Castle of Burgundy", matches: 22, lastDate: "12/12/2021" }, { name: "Lords of Scotland", matches: 23, lastDate: "18/12/2021" }, { name: "Blackout Hong Kong", matches: 12, lastDate: "27/12/2021" }, { name: "Rajas of Ganges", matches: 23, lastDate: "30/12/2021" }, { name: "Tsukiji", matches: 13, lastDate: "08/01/2022" }, { name: "Futuropia", matches: 11, lastDate: "12/01/2022" }, { name: "Indian Summer", matches: 14, lastDate: "14/01/2022" }, { name: "Noria", matches: 24, lastDate: "20/01/2022" }, { name: "Fields of Green", matches: 23, lastDate: "26/01/2022" }, { name: "Cidades Submersas", matches: 10, lastDate: "28/02/2022" }, { name: "The Few of Cursed", matches: 11, lastDate: "26/03/2022" }, { name: "Caçadores da Galáxia", matches: 23, lastDate: "29/03/2022" }, { name: "Century Mars Oriental", matches: 10, lastDate: "09/04/2022" }, { name: "Tzolkien The Mayan", matches: 23, lastDate: "13/04/2022" }, { name: "Viscondes Rota Ocidental", matches: 10, lastDate: "18/04/2022" }, { name: "Abyss", matches: 24, lastDate: "30/04/2022" }, { name: "Chaparral", matches: 24, lastDate: "15/05/2022" }, { name: "Agrícola", matches: 26, lastDate: "27/05/2022" }, { name: "Aquarium", matches: 24, lastDate: "29/05/2022" }, { name: "Power Grid", matches: 24, lastDate: "16/06/2022" }, { name: "Race for The Galaxy", matches: 15, lastDate: "18/06/2022" }, { name: "Dead of Winter", matches: 25, lastDate: "26/06/2022" }, { name: "Mexica", matches: 27, lastDate: "14/07/2022" }, { name: "Isle of Skye", matches: 27, lastDate: "21/07/2022" }, { name: "Jester", matches: 28, lastDate: "26/07/2022" }, { name: "Village", matches: 26, lastDate: "07/08/22" }, { name: "Rock Roll Manager", matches: 26, lastDate: "19/08/22" }, { name: "Istambul", matches: 27, lastDate: "26/08/22" }, { name: "Azul", matches: 35, lastDate: "04/09/22" }, { name: "Barony", matches: 31, lastDate: "07/09/22" }, { name: "Catan Card Game", matches: 12, lastDate: "09/01/23" }, { name: "Viral", matches: 10, lastDate: "17/03/23" }, { name: "Dogs Card Game", matches: 10, lastDate: "01/04/23" }, { name: "Dwar7s Spring", matches: 10, lastDate: "25/04/23" }, { name: "Fallout Shelter", matches: 10, lastDate: "01/05/23" }, { name: "Tiny Epic Dinosaurs", matches: 10, lastDate: "09/05/23" }, { name: "Ra", matches: 11, lastDate: "29/05/23" }, { name: "Whistle Stop", matches: 12, lastDate: "19/06/23" }, { name: "Tiny Epic Zombies", matches: 10, lastDate: "28/06/23" }, { name: "Heróis de San Villano", matches: 11, lastDate: "20/07/23" }, { name: "Ancient Terrible Thing", matches: 10, lastDate: "07/09/23" }, { name: "Quadropolis", matches: 10, lastDate: "23/09/23" }, { name: "Caylus", matches: 10, lastDate: "07/10/23" }, { name: "Eldritch Horror", matches: 20, lastDate: "01/11/23" }, { name: "Cosmos", matches: 10, lastDate: "11/11/23" }, { name: "Triora Cidades das Bruxas", matches: 10, lastDate: "26/11/23" }, { name: "Santo Domingo", matches: 10, lastDate: "10/12/23" }, { name: "Modern Art", matches: 13, lastDate: "16/12/23" }, { name: "Witchstones", matches: 10, lastDate: "19/12/23" }, { name: "Its a Wonderful World", matches: 11, lastDate: "05/01/24" }, { name: "Arquitetos do Rio Ocidental", matches: 10, lastDate: "18/01/24" }, { name: "Paris", matches: 10, lastDate: "04/01/24" }, { name: "Tiny Epic Pirates", matches: 11, lastDate: "15/03/24" }, { name: "Founders of Teotihuacan", matches: 12, lastDate: "27/04/24" }, { name: "Alubari", matches: 10, lastDate: "09/06/24" }, { name: "Pandemia", matches: 25, lastDate: "11/06/24" }, { name: "Battle for Rokugan", matches: 11, lastDate: "15/06/24" }, { name: "Tekhenu", matches: 11, lastDate: "28/06/24" }, { name: "Dominations", matches: 10, lastDate: "10/07/24" }, { name: "Tortuga", matches: 15, lastDate: "15/07/24" }, { name: "Santa Maria", matches: 12, lastDate: "10/08/24" }, { name: "Zapotec", matches: 11, lastDate: "01/09/2024" }, { name: "Daymio", matches: 11, lastDate: "29/09/2024" }, { name: "Res Arcana", matches: 11, lastDate: "19/09/2024" }, { name: "Origins", matches: 11, lastDate: "03/11/2024" }, { name: "Reload", matches: 10, lastDate: "28/12/2024" }, { name: "Corrosion", matches: 10, lastDate: "21/01/2025" }, { name: "Maharaja", matches: 10, lastDate: "01/02/2025" }, { name: "Hippocrates", matches: 10, lastDate: "01/03/2025" }, { name: "Tawantinsuyu", matches: 11, lastDate: "23/03/2025" }, { name: "Northgard", matches: 11, lastDate: "18/04/2025" }, { name: "Bonfire", matches: 12, lastDate: "21/04/2025" }, { name: "Tindaya", matches: 10, lastDate: "02/06/2025" }, { name: "Gen 7", matches: 10, lastDate: "11/07/2025" }, { name: "Rallyman Dirt", matches: 10, lastDate: "03/08/2025" }, { name: "Star Realms", matches: 11, lastDate: "23/09/2025" }, { name: "Circadianos", matches: 11, lastDate: "data desconhecida" }, { name: "Anacrony", matches: 10, lastDate: "22/11/2025" }, { name: "Libertalia", matches: 11, lastDate: "14/12/2025" }, { name: "Luna Maria", matches: 10, lastDate: "05/01/2026" }, { name: "Oak", matches: 10, lastDate: "data desconhecida" }
     ];
 
     // ============= REFERÊNCIAS FIREBASE =============
@@ -470,9 +299,7 @@
             .catch(error => alert('Erro: ' + error.message));
     }
 
-    function logoutUser() {
-        auth.signOut().then(() => location.reload());
-    }
+    function logoutUser() { auth.signOut().then(() => location.reload()); }
 
     function showMainApp() {
         document.getElementById('authSection').style.display = 'none';
@@ -532,15 +359,12 @@
         const listDiv = document.getElementById('playersList');
         if (!listDiv) return;
         let filtered = players.filter(p => p.name.toLowerCase().includes(filter));
-        if (filtered.length === 0) {
-            listDiv.innerHTML = '<div class="empty-state">Nenhum jogador</div>';
-            return;
-        }
+        if (filtered.length === 0) { listDiv.innerHTML = '<div class="empty-state">Nenhum jogador</div>'; return; }
         listDiv.innerHTML = filtered.map(p => `
             <div class="player-card">
                 <div class="player-card-header">
-                    <div class="player-name">${p.name}</div>
-                    <button class="btn btn-danger btn-small" onclick="deletePlayer(${p.id})">🗑️</button>
+                    <div class="player-name">${escapeHtml(p.name)}</div>
+                    <button class="btn btn-danger btn-small" data-id="${p.id}" data-action="deletePlayer">🗑️</button>
                 </div>
                 <div class="player-stats">
                     <div class="player-stat-item"><div class="player-stat-value">${p.wins}</div><div class="player-stat-label">Vitórias</div></div>
@@ -550,10 +374,16 @@
                 ${p.lastGame ? `<div style="margin-top:12px; font-size:0.85rem; background:rgba(20,184,166,0.1); padding:8px; border-radius:8px;">📅 ${p.lastGame} - ${p.lastDate}</div>` : ''}
             </div>
         `).join('');
+        // Event delegation for delete buttons
+        document.querySelectorAll('#playersList button[data-action="deletePlayer"]').forEach(btn => {
+            btn.removeEventListener('click', handlePlayerDelete);
+            btn.addEventListener('click', handlePlayerDelete);
+        });
     }
+    function handlePlayerDelete(e) { deletePlayer(parseInt(e.currentTarget.dataset.id)); }
 
     function filterAndRenderPlayers() { renderPlayers(); }
-    function clearPlayerFilter() { if (document.getElementById('playerFilter')) document.getElementById('playerFilter').value = ''; renderPlayers(); }
+    function clearPlayerFilter() { document.getElementById('playerFilter').value = ''; renderPlayers(); }
 
     // ============= JOGOS =============
     function addGame() {
@@ -595,15 +425,12 @@
         const listDiv = document.getElementById('gamesList');
         if (!listDiv) return;
         let filtered = games.filter(g => g.name.toLowerCase().includes(filter));
-        if (filtered.length === 0) {
-            listDiv.innerHTML = '<div class="empty-state">Nenhum jogo</div>';
-            return;
-        }
+        if (filtered.length === 0) { listDiv.innerHTML = '<div class="empty-state">Nenhum jogo</div>'; return; }
         listDiv.innerHTML = filtered.map(g => `
             <div class="player-card">
                 <div class="player-card-header">
-                    <div class="player-name">${g.name}</div>
-                    <button class="btn btn-danger btn-small" onclick="deleteGame(${g.id})">🗑️</button>
+                    <div class="player-name">${escapeHtml(g.name)}</div>
+                    <button class="btn btn-danger btn-small" data-id="${g.id}" data-action="deleteGame">🗑️</button>
                 </div>
                 <div class="player-stats">
                     <div class="player-stat-item"><div class="player-stat-value">${g.matches}</div><div class="player-stat-label">Partidas</div></div>
@@ -611,10 +438,15 @@
                 ${g.lastDate ? `<div style="margin-top:12px; font-size:0.85rem;">📅 Última: ${g.lastDate}</div>` : ''}
             </div>
         `).join('');
+        document.querySelectorAll('#gamesList button[data-action="deleteGame"]').forEach(btn => {
+            btn.removeEventListener('click', handleGameDelete);
+            btn.addEventListener('click', handleGameDelete);
+        });
     }
+    function handleGameDelete(e) { deleteGame(parseInt(e.currentTarget.dataset.id)); }
 
     function filterAndRenderGames() { renderGames(); }
-    function clearGameFilter() { if (document.getElementById('gameFilter')) document.getElementById('gameFilter').value = ''; renderGames(); }
+    function clearGameFilter() { document.getElementById('gameFilter').value = ''; renderGames(); }
 
     // ============= DASHBOARD E ANÁLISES =============
     function updateDashboard() {
@@ -622,30 +454,27 @@
         document.getElementById('winsRanking').innerHTML = sortedWins.map((p, i) => `
             <tr>
                 <td><span class="rank-badge ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'default'}">${i + 1}</span></td>
-                <td>${p.name}</td>
+                <td>${escapeHtml(p.name)}</td>
                 <td>${p.wins}</td>
                 <td><span class="badge badge-primary">${p.matches ? ((p.wins / p.matches) * 100).toFixed(0) : 0}%</span></td>
             </tr>
         `).join('');
-
         const sortedMatches = [...players].sort((a, b) => b.matches - a.matches).slice(0, 5);
         document.getElementById('matchesRanking').innerHTML = sortedMatches.map((p, i) => `
             <tr>
                 <td><span class="rank-badge ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : 'default'}">${i + 1}</span></td>
-                <td>${p.name}</td>
+                <td>${escapeHtml(p.name)}</td>
                 <td>${p.matches}</td>
                 <td><span class="badge badge-primary">${(p.matches ? (p.wins / p.matches) : 0).toFixed(2)}</span></td>
             </tr>
         `).join('');
-
         const gameCounts = games.map(g => ({ name: g.name, count: matches.filter(m => m.gameId === g.id).length })).sort((a, b) => b.count - a.count).slice(0, 3);
         document.getElementById('mostPlayedGames').innerHTML = gameCounts.map(g => `
             <div class="player-card">
-                <div class="player-name">${g.name}</div>
+                <div class="player-name">${escapeHtml(g.name)}</div>
                 <div class="player-stat-value">${g.count} partidas</div>
             </div>
         `).join('') || '<div class="empty-state">Nenhum jogo ainda</div>';
-
         if (charts.wins) charts.wins.destroy();
         const topWins = [...players].sort((a, b) => b.wins - a.wins).slice(0, 5);
         charts.wins = new Chart(document.getElementById('winsChart'), {
@@ -653,7 +482,6 @@
             data: { labels: topWins.map(p => p.name), datasets: [{ data: topWins.map(p => p.wins), backgroundColor: ['#fbbf24', '#14b8a6', '#f97316', '#06b6d4', '#8b5cf6'] }] },
             options: { responsive: true, maintainAspectRatio: false }
         });
-
         if (charts.games) charts.games.destroy();
         const topGames = games.map(g => ({ name: g.name, count: matches.filter(m => m.gameId === g.id).length })).sort((a, b) => b.count - a.count).slice(0, 8);
         charts.games = new Chart(document.getElementById('gamesChart'), {
@@ -661,23 +489,17 @@
             data: { labels: topGames.map(g => g.name), datasets: [{ label: 'Partidas', data: topGames.map(g => g.count), backgroundColor: '#14b8a6' }] },
             options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
         });
-
         const analyticsDiv = document.getElementById('analyticsContent');
-        if (matches.length === 0) {
-            analyticsDiv.innerHTML = '<div class="empty-state">Nenhuma partida registrada</div>';
-        } else {
-            analyticsDiv.innerHTML = `
-                <div class="grid-3">
-                    <div class="card"><div class="stat-value">${matches.length}</div><div class="stat-label">Total Partidas</div></div>
-                    <div class="card"><div class="stat-value">${new Set(matches.map(m => m.gameId)).size}</div><div class="stat-label">Jogos Diferentes</div></div>
-                    <div class="card"><div class="stat-value">${(matches.length / new Set(matches.map(m => m.gameId)).size).toFixed(1)}</div><div class="stat-label">Média/Jogo</div></div>
-                </div>
-                <div class="card"><div class="card-title">Últimas Partidas</div>${matches.slice(0, 10).map(m => `<div class="player-card"><strong>${m.gameName}</strong> - ${m.date}<br>🏆 ${m.winnerName}</div>`).join('')}</div>
-            `;
-        }
+        if (matches.length === 0) analyticsDiv.innerHTML = '<div class="empty-state">Nenhuma partida registrada</div>';
+        else analyticsDiv.innerHTML = `
+            <div class="grid-3"><div class="card"><div class="stat-value">${matches.length}</div><div class="stat-label">Total Partidas</div></div>
+            <div class="card"><div class="stat-value">${new Set(matches.map(m => m.gameId)).size}</div><div class="stat-label">Jogos Diferentes</div></div>
+            <div class="card"><div class="stat-value">${(matches.length / new Set(matches.map(m => m.gameId)).size).toFixed(1)}</div><div class="stat-label">Média/Jogo</div></div></div>
+            <div class="card"><div class="card-title">Últimas Partidas</div>${matches.slice(0, 10).map(m => `<div class="player-card"><strong>${m.gameName}</strong> - ${m.date}<br>🏆 ${m.winnerName}</div>`).join('')}</div>
+        `;
     }
 
-    // ============= FUNÇÕES DA PARTIDA (REGISTRAR) =============
+    // ============= FUNÇÕES DA PARTIDA =============
     function updateGameInfo() {
         const gameId = parseInt(document.getElementById('gameSelect').value);
         const game = games.find(g => g.id === gameId);
@@ -685,194 +507,132 @@
         if (game) {
             infoDiv.style.display = 'block';
             infoDiv.innerHTML = `📊 ${game.matches} partidas | Última: ${game.lastDate || '-'}`;
-        } else {
-            infoDiv.style.display = 'none';
-        }
+        } else infoDiv.style.display = 'none';
         renderPlayerSelection();
     }
-
     function renderPlayerSelection() {
         const grid = document.getElementById('playersSelectionGrid');
         if (!grid) return;
         grid.innerHTML = players.map(p => `
             <label class="player-checkbox">
-                <input type="checkbox" value="${p.id}" onchange="updatePlayerSelection()">
-                <span class="player-checkbox-label">${p.name}</span>
+                <input type="checkbox" value="${p.id}">
+                <span class="player-checkbox-label">${escapeHtml(p.name)}</span>
             </label>
         `).join('');
     }
-
     function updatePlayerSelection() {
         const checkboxes = document.querySelectorAll('#playersSelectionGrid input:checked');
-        if (checkboxes.length > 4) {
-            alert('Máximo 4 jogadores por partida');
-            checkboxes[checkboxes.length - 1].checked = false;
-            return;
-        }
-        currentMatchPlayers = Array.from(checkboxes).map(cb => {
-            const pid = parseInt(cb.value);
-            const player = players.find(p => p.id === pid);
-            return { id: pid, name: player.name };
-        });
+        if (checkboxes.length > 4) { alert('Máximo 4 jogadores'); checkboxes[checkboxes.length-1].checked = false; return; }
+        currentMatchPlayers = Array.from(checkboxes).map(cb => ({ id: parseInt(cb.value), name: players.find(p=>p.id===parseInt(cb.value)).name }));
         renderScoreboard();
     }
-
     function renderScoreboard() {
-        const container = document.getElementById('matchScoreboard');
-        const parent = document.getElementById('scoreboardContainer');
-        if (currentMatchPlayers.length === 0) {
-            parent.style.display = 'none';
-            return;
-        }
+        const container = document.getElementById('matchScoreboard'), parent = document.getElementById('scoreboardContainer');
+        if (currentMatchPlayers.length === 0) { parent.style.display = 'none'; return; }
         parent.style.display = 'block';
         container.innerHTML = currentMatchPlayers.map(p => `
             <div class="player-scoreboard">
-                <div class="scoreboard-name">${p.name}</div>
+                <div class="scoreboard-name">${escapeHtml(p.name)}</div>
                 <div class="scoreboard-score" id="score-${p.id}">0</div>
                 <div>
-                    <button class="score-button" onclick="updateScore(${p.id}, -1)">-1</button>
-                    <button class="score-button" onclick="updateScore(${p.id}, 1)">+1</button>
-                    <button class="score-button" onclick="updateScore(${p.id}, -5)">-5</button>
-                    <button class="score-button" onclick="updateScore(${p.id}, 5)">+5</button>
+                    <button class="score-button" data-player="${p.id}" data-delta="-1">-1</button>
+                    <button class="score-button" data-player="${p.id}" data-delta="1">+1</button>
+                    <button class="score-button" data-player="${p.id}" data-delta="-5">-5</button>
+                    <button class="score-button" data-player="${p.id}" data-delta="5">+5</button>
                 </div>
             </div>
         `).join('');
         currentMatchPlayers.forEach(p => currentMatchScores[p.id] = 0);
+        document.querySelectorAll('.score-button').forEach(btn => {
+            btn.removeEventListener('click', handleScoreClick);
+            btn.addEventListener('click', handleScoreClick);
+        });
     }
-
+    function handleScoreClick(e) {
+        const playerId = parseInt(e.currentTarget.dataset.player);
+        const delta = parseInt(e.currentTarget.dataset.delta);
+        updateScore(playerId, delta);
+    }
     function updateScore(playerId, delta) {
         currentMatchScores[playerId] = Math.max(0, (currentMatchScores[playerId] || 0) + delta);
-        const scoreSpan = document.getElementById(`score-${playerId}`);
-        if (scoreSpan) scoreSpan.innerText = currentMatchScores[playerId];
+        const span = document.getElementById(`score-${playerId}`);
+        if (span) span.innerText = currentMatchScores[playerId];
     }
-
-    function startMatch() {
-        if (currentMatchPlayers.length === 0) alert('Selecione pelo menos um jogador');
-        else alert('Partida iniciada! Use o cronômetro e o placar.');
-    }
-
+    function startMatch() { if (currentMatchPlayers.length===0) alert('Selecione jogadores'); else alert('Partida iniciada!'); }
     function finishMatch() {
         const gameId = parseInt(document.getElementById('gameSelect').value);
         const game = games.find(g => g.id === gameId);
         if (!game) return alert('Selecione um jogo');
-        if (currentMatchPlayers.length === 0) return alert('Selecione os jogadores');
-
-        let winnerId = currentMatchPlayers[0].id;
-        let maxScore = currentMatchScores[winnerId] || 0;
-        currentMatchPlayers.forEach(p => {
-            const score = currentMatchScores[p.id] || 0;
-            if (score > maxScore) {
-                maxScore = score;
-                winnerId = p.id;
-            }
-        });
+        if (currentMatchPlayers.length===0) return alert('Selecione os jogadores');
+        let winnerId = currentMatchPlayers[0].id, maxScore = currentMatchScores[winnerId]||0;
+        currentMatchPlayers.forEach(p => { if ((currentMatchScores[p.id]||0) > maxScore) { maxScore = currentMatchScores[p.id]; winnerId = p.id; } });
         const winner = players.find(p => p.id === winnerId);
         winner.wins++;
-        currentMatchPlayers.forEach(p => {
-            const player = players.find(pl => pl.id === p.id);
-            if (player) player.matches++;
-        });
-        game.matches++;
-        game.lastDate = new Date().toLocaleDateString('pt-BR');
-
-        matches.push({
-            id: Date.now(),
-            gameId: game.id,
-            gameName: game.name,
-            winnerId: winner.id,
-            winnerName: winner.name,
-            players: currentMatchPlayers.map(p => ({ id: p.id, name: p.name, score: currentMatchScores[p.id] || 0 })),
-            duration: matchTimerSeconds,
-            date: new Date().toLocaleString()
-        });
-
+        currentMatchPlayers.forEach(p => { const player = players.find(pl => pl.id === p.id); if (player) player.matches++; });
+        game.matches++; game.lastDate = new Date().toLocaleDateString('pt-BR');
+        matches.push({ id: Date.now(), gameId: game.id, gameName: game.name, winnerId: winner.id, winnerName: winner.name, players: currentMatchPlayers.map(p=>({id:p.id,name:p.name,score:currentMatchScores[p.id]||0})), duration: matchTimerSeconds, date: new Date().toLocaleString() });
         saveAll();
         resetMatchForm();
-        alert(`🎉 Partida registrada! Vencedor: ${winner.name} em ${Math.floor(matchTimerSeconds / 60)}min`);
+        alert(`🎉 Partida registrada! Vencedor: ${winner.name} em ${Math.floor(matchTimerSeconds/60)}min`);
     }
-
     function resetMatchForm() {
-        currentMatchPlayers = [];
-        currentMatchScores = {};
-        matchTimerSeconds = 0;
-        if (matchTimerInterval) clearInterval(matchTimerInterval);
-        isMatchTimerRunning = false;
+        currentMatchPlayers = []; currentMatchScores = {}; matchTimerSeconds = 0;
+        if (matchTimerInterval) clearInterval(matchTimerInterval); isMatchTimerRunning = false;
         document.getElementById('matchTimerDisplay').innerText = '00:00:00';
         document.getElementById('scoreboardContainer').style.display = 'none';
         renderPlayerSelection();
     }
-
-    // Timer
-    function startMatchTimer() {
-        if (isMatchTimerRunning) return;
-        isMatchTimerRunning = true;
-        matchTimerInterval = setInterval(() => {
-            if (isMatchTimerRunning) {
-                matchTimerSeconds++;
-                const hrs = Math.floor(matchTimerSeconds / 3600);
-                const mins = Math.floor((matchTimerSeconds % 3600) / 60);
-                const secs = matchTimerSeconds % 60;
-                document.getElementById('matchTimerDisplay').innerText = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            }
-        }, 1000);
-    }
-
-    function pauseMatchTimer() {
-        isMatchTimerRunning = false;
-        if (matchTimerInterval) clearInterval(matchTimerInterval);
-    }
-
-    function resetMatchTimer() {
-        pauseMatchTimer();
-        matchTimerSeconds = 0;
-        document.getElementById('matchTimerDisplay').innerText = '00:00:00';
-    }
-
+    function startMatchTimer() { if (isMatchTimerRunning) return; isMatchTimerRunning = true; matchTimerInterval = setInterval(() => { if (isMatchTimerRunning) { matchTimerSeconds++; const hrs=Math.floor(matchTimerSeconds/3600), mins=Math.floor((matchTimerSeconds%3600)/60), secs=matchTimerSeconds%60; document.getElementById('matchTimerDisplay').innerText = `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; } },1000); }
+    function pauseMatchTimer() { isMatchTimerRunning = false; if (matchTimerInterval) clearInterval(matchTimerInterval); }
+    function resetMatchTimer() { pauseMatchTimer(); matchTimerSeconds = 0; document.getElementById('matchTimerDisplay').innerText = '00:00:00'; }
     function updateSelects() {
         const gameSelect = document.getElementById('gameSelect');
-        if (gameSelect) {
-            gameSelect.innerHTML = '<option value="">Selecione um jogo</option>' + games.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
-        }
+        if (gameSelect) gameSelect.innerHTML = '<option value="">Selecione um jogo</option>' + games.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
         renderPlayerSelection();
     }
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
-    function switchTab(tabName) {
-        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabName).classList.add('active');
-        event.target.classList.add('active');
-        if (tabName === 'register') renderPlayerSelection();
+    // ============= TROCAR ABA =============
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('data-tab') === tabId);
+        if (btn) btn.classList.add('active');
+        if (tabId === 'register') renderPlayerSelection();
     }
 
-    // Expor funções para o escopo global (necessário para os onclick)
-    window.registerUser = registerUser;
-    window.loginUser = loginUser;
-    window.logoutUser = logoutUser;
-    window.addPlayer = addPlayer;
-    window.deletePlayer = deletePlayer;
-    window.deleteAllPlayers = deleteAllPlayers;
-    window.resetPlayers = resetPlayers;
-    window.addGame = addGame;
-    window.deleteGame = deleteGame;
-    window.deleteAllGames = deleteAllGames;
-    window.resetGames = resetGames;
-    window.filterAndRenderPlayers = filterAndRenderPlayers;
-    window.clearPlayerFilter = clearPlayerFilter;
-    window.filterAndRenderGames = filterAndRenderGames;
-    window.clearGameFilter = clearGameFilter;
-    window.updateGameInfo = updateGameInfo;
-    window.updatePlayerSelection = updatePlayerSelection;
-    window.updateScore = updateScore;
-    window.startMatch = startMatch;
-    window.finishMatch = finishMatch;
-    window.resetMatchForm = resetMatchForm;
-    window.startMatchTimer = startMatchTimer;
-    window.pauseMatchTimer = pauseMatchTimer;
-    window.resetMatchTimer = resetMatchTimer;
-    window.switchTab = switchTab;
+    // ============= VINCULAÇÃO DE EVENTOS =============
+    function bindEvents() {
+        document.getElementById('authLoginBtn')?.addEventListener('click', loginUser);
+        document.getElementById('authRegisterBtn')?.addEventListener('click', registerUser);
+        document.getElementById('logoutBtn')?.addEventListener('click', logoutUser);
+        document.getElementById('addPlayerBtn')?.addEventListener('click', addPlayer);
+        document.getElementById('resetPlayersBtn')?.addEventListener('click', resetPlayers);
+        document.getElementById('deleteAllPlayersBtn')?.addEventListener('click', deleteAllPlayers);
+        document.getElementById('addGameBtn')?.addEventListener('click', addGame);
+        document.getElementById('resetGamesBtn')?.addEventListener('click', resetGames);
+        document.getElementById('deleteAllGamesBtn')?.addEventListener('click', deleteAllGames);
+        document.getElementById('startMatchBtn')?.addEventListener('click', startMatch);
+        document.getElementById('finishMatchBtn')?.addEventListener('click', finishMatch);
+        document.getElementById('resetMatchFormBtn')?.addEventListener('click', resetMatchForm);
+        document.getElementById('matchTimerPlay')?.addEventListener('click', startMatchTimer);
+        document.getElementById('matchTimerPause')?.addEventListener('click', pauseMatchTimer);
+        document.getElementById('matchTimerReset')?.addEventListener('click', resetMatchTimer);
+        document.getElementById('clearPlayerFilter')?.addEventListener('click', clearPlayerFilter);
+        document.getElementById('clearGameFilter')?.addEventListener('click', clearGameFilter);
+        document.getElementById('playerFilter')?.addEventListener('keyup', filterAndRenderPlayers);
+        document.getElementById('gameFilter')?.addEventListener('keyup', filterAndRenderGames);
+        document.getElementById('gameSelect')?.addEventListener('change', updateGameInfo);
+        document.getElementById('playersSelectionGrid')?.addEventListener('change', updatePlayerSelection);
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+        });
+    }
 
     // Inicialização
     document.addEventListener('DOMContentLoaded', () => {
+        bindEvents();
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
