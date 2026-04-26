@@ -2,538 +2,432 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>ScorePal PRO | 32 Jogadores + 164 Jogos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IROKO | Clube de Tabuleiro - Firebase</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+        /* Mantenha o CSS exatamente igual ao original (espaço limitado, vou manter o mesmo estilo) */
+        * { margin:0; padding:0; box-sizing: border-box; }
+        :root {
+            --primary: #0f766e;
+            --primary-light: #14b8a6;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-light: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #475569;
         }
-
         body {
-            background: linear-gradient(145deg, #1a2a32 0%, #0a111a 100%);
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
         }
-
-        .app-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(4px);
-            border-radius: 48px;
-            padding: 20px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.4);
-        }
-
-        .top-section {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-bottom: 25px;
-        }
-
-        .game-manager, .match-register {
-            background: #0b101acc;
-            border-radius: 40px;
-            padding: 18px 20px;
-            border: 1px solid #f1c40f55;
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .match-register {
-            border-color: #2ecc7155;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #ffe5b4;
-            margin-bottom: 12px;
-            border-left: 4px solid #f39c12;
-            padding-left: 12px;
-        }
-
-        .game-controls, .flex-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        input, select, button {
-            padding: 8px 14px;
-            border-radius: 60px;
-            border: none;
-            background: #fef3e0;
-            font-size: 0.9rem;
-        }
-
-        button {
-            background: #f39c12;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-
-        button:active { transform: scale(0.96); }
-
-        .timer-panel {
-            background: #0b101acc;
-            border-radius: 40px;
-            padding: 12px 18px;
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-        }
-
-        .timer-display {
-            font-size: 2rem;
-            font-family: monospace;
-            background: black;
-            padding: 6px 20px;
-            border-radius: 50px;
-            color: cyan;
-        }
-
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .player-card {
-            background: linear-gradient(135deg, #fff5e6, #fff0df);
-            border-radius: 32px;
-            padding: 18px 16px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            border: 1px solid #ffd966;
-        }
-
-        .player-name {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #2c3e50;
-            word-break: break-word;
-        }
-
-        .player-points {
-            font-size: 2.8rem;
-            font-weight: 800;
-            text-align: center;
-            margin: 12px 0;
-            background: #2c3e50;
-            color: #f5f5dc;
-            border-radius: 50px;
-            padding: 8px;
-            font-family: monospace;
-        }
-
-        .score-controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 15px;
-        }
-
-        .score-btn {
-            font-size: 1.8rem;
-            width: 55px;
-            height: 55px;
-            border-radius: 40px;
-            border: none;
-            font-weight: bold;
-            background: #2c3e50;
-            color: white;
-        }
-
-        .score-btn.minus { background: #c0392b; }
-        .score-btn.plus { background: #27ae60; }
-
-        .player-actions {
-            display: flex;
-            gap: 10px;
-        }
-        .player-actions button {
-            flex: 1;
-            padding: 8px;
-            border-radius: 30px;
-            font-weight: bold;
-            border: none;
-        }
-
-        .history-list {
-            max-height: 200px;
-            overflow-y: auto;
-            background: #00000055;
-            border-radius: 24px;
-            padding: 8px;
-            margin-top: 12px;
-        }
-        .history-item {
-            background: #1e2a36;
-            margin: 6px 0;
-            padding: 8px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: #ddd;
-            display: flex;
-            justify-content: space-between;
-        }
-        .import-btn {
-            background: #2ecc71;
-            width: 100%;
-            margin-top: 8px;
-        }
-        .import-games-btn {
-            background: #9b59b6;
-            width: 100%;
-            margin-top: 8px;
-        }
-        .footer-msg {
-            text-align: center;
-            margin-top: 25px;
-            color: #aaa;
-            font-size: 0.75rem;
-        }
-        .game-stats {
-            font-size: 0.7rem;
-            background: #2c3e5033;
-            border-radius: 20px;
-            padding: 4px;
-            margin-top: 6px;
-            text-align: center;
-        }
-        @media (max-width: 700px) {
-            .players-grid { grid-template-columns: 1fr; }
-        }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; padding: 30px; background: linear-gradient(135deg, rgba(15,118,110,0.1) 0%, rgba(245,158,11,0.05) 100%); border-radius: 20px; border: 1px solid rgba(20,184,166,0.2); }
+        .logo-section { display: flex; align-items: center; gap: 20px; }
+        .logo-img { width: 70px; height: 70px; border-radius: 15px; background: rgba(255,255,255,0.1); padding: 10px; border: 2px solid var(--primary-light); }
+        .header-title h1 { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-light), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-stats { display: flex; gap: 20px; align-items: center; }
+        .stat-item { background: rgba(20,184,166,0.1); padding: 15px 25px; border-radius: 12px; text-align: center; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.8rem; color: var(--text-secondary); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; border-bottom: 2px solid var(--border); overflow-x: auto; }
+        .tab-btn { padding: 12px 24px; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary-light); border-bottom-color: var(--primary-light); }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; margin-bottom: 30px; }
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 25px; transition: 0.3s; }
+        .card:hover { border-color: var(--primary-light); box-shadow: 0 8px 32px rgba(20,184,166,0.15); transform: translateY(-2px); }
+        .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary); text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 12px 16px; background: var(--bg-card-light); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); font-size: 0.95rem; }
+        .btn { padding: 12px 24px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; }
+        .btn-secondary { background: var(--bg-card-light); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-small { padding: 8px 16px; font-size: 0.85rem; }
+        .btn-block { width: 100%; justify-content: center; }
+        .player-card { background: linear-gradient(135deg, rgba(20,184,166,0.1) 0%, rgba(245,158,11,0.05) 100%); border: 1px solid rgba(20,184,166,0.2); border-radius: 14px; padding: 18px; margin-bottom: 15px; }
+        .player-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .player-name { font-size: 1.1rem; font-weight: 700; }
+        .player-stats { display: flex; gap: 20px; }
+        .player-stat-value { font-size: 1.3rem; font-weight: 700; color: var(--primary-light); }
+        .player-stat-label { font-size: 0.75rem; color: var(--text-secondary); }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+        .badge-primary { background: rgba(20,184,166,0.2); color: var(--primary-light); }
+        .badge-success { background: rgba(16,185,129,0.2); color: var(--success); }
+        .ranking-table { width: 100%; border-collapse: collapse; }
+        .ranking-table th, .ranking-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-weight: 700; }
+        .rank-badge.gold { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1a1a1a; }
+        .rank-badge.silver { background: linear-gradient(135deg, #e5e7eb, #d1d5db); color: #1f2937; }
+        .rank-badge.bronze { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+        .players-selection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .player-checkbox-label { display: block; padding: 12px; background: var(--bg-card-light); border: 2px solid var(--border); border-radius: 10px; text-align: center; cursor: pointer; }
+        .player-checkbox input:checked + .player-checkbox-label { background: var(--primary); color: white; border-color: var(--primary-light); }
+        .scoreboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .player-scoreboard { background: rgba(20,184,166,0.1); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; }
+        .scoreboard-score { font-size: 2.5rem; font-weight: 800; color: var(--primary-light); }
+        .score-button { padding: 8px; border-radius: 8px; font-weight: 700; cursor: pointer; background: rgba(255,255,255,0.1); color: var(--text-primary); margin: 4px; }
+        .match-timer { display: flex; align-items: center; justify-content: center; gap: 15px; padding: 20px; background: rgba(20,184,166,0.15); border-radius: 14px; margin-bottom: 20px; }
+        .timer-value { font-size: 2.5rem; font-weight: 800; font-family: monospace; color: var(--primary-light); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @media (max-width: 768px) { .header { flex-direction: column; text-align: center; } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <div class="top-section">
-        <div class="game-manager">
-            <div class="section-title">🎲 GERENCIAR JOGOS (164)</div>
-            <div class="game-controls">
-                <input type="text" id="newGameName" placeholder="Novo jogo" autocomplete="off">
-                <button id="addGameBtn">➕ Inserir</button>
-                <button id="importGamesBtn" class="import-games-btn">📚 Importar 164 Jogos</button>
+<div class="container">
+    <!-- Auth Section -->
+    <div id="authSection" style="margin-bottom: 30px;">
+        <div class="card" style="max-width: 400px; margin: 0 auto;">
+            <div class="card-title" style="justify-content: center;">🔐 Autenticação</div>
+            <div class="form-group"><label>Email</label><input type="email" id="authEmail" placeholder="seu@email.com"></div>
+            <div class="form-group"><label>Senha</label><input type="password" id="authPassword" placeholder="Sua senha"></div>
+            <button class="btn btn-primary btn-block" onclick="loginUser()">🔓 Entrar</button>
+            <button class="btn btn-secondary btn-block" onclick="registerUser()" style="margin-top: 10px;">📝 Criar Conta</button>
+            <div class="empty-state" style="margin-top: 15px; font-size: 0.85rem;">Demo: teste@iroko.com / senha123</div>
+        </div>
+    </div>
+
+    <!-- Main App (hidden until auth) -->
+    <div id="mainApp" style="display: none;">
+        <div class="header">
+            <div class="logo-section"><div class="logo-img">🎲</div><div class="header-title"><h1>IROKO</h1><p>Clube de Tabuleiro • Firebase</p></div></div>
+            <div class="header-stats">
+                <div class="stat-item"><div class="stat-value" id="totalPlayers">0</div><div class="stat-label">Jogadores</div></div>
+                <div class="stat-item"><div class="stat-value" id="totalMatches">0</div><div class="stat-label">Partidas</div></div>
+                <div class="stat-item"><div class="stat-value" id="totalGames">0</div><div class="stat-label">Jogos</div></div>
+                <button class="btn btn-secondary" onclick="logoutUser()">🚪 Sair</button>
             </div>
-            <div style="display: flex; gap: 10px; align-items: center;">
-                <span style="color:#ccc;">🎮 Jogo atual:</span>
-                <select id="gameSelector"></select>
-                <button id="deleteGameBtn" style="background:#e67e22;">🗑 Remover</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('register')">➕ Registrar Partida</button>
+            <button class="tab-btn" onclick="switchTab('players')">👥 Jogadores</button>
+            <button class="tab-btn" onclick="switchTab('games')">🎮 Jogos</button>
+            <button class="tab-btn" onclick="switchTab('analytics')">📈 Análises</button>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="grid-2">
+                <div class="card"><div class="card-title">🔍 Filtrar Jogadores</div><input type="text" id="playerFilter" placeholder="Nome..." onkeyup="filterAndRenderPlayers()"><button class="btn btn-secondary btn-small" onclick="clearPlayerFilter()" style="margin-top: 8px;">Limpar</button></div>
+                <div class="card"><div class="card-title">🔍 Filtrar Jogos</div><input type="text" id="gameFilter" placeholder="Nome..." onkeyup="filterAndRenderGames()"><button class="btn btn-secondary btn-small" onclick="clearGameFilter()" style="margin-top: 8px;">Limpar</button></div>
             </div>
-            <div class="selected-game" id="selectedGameDisplay"></div>
+            <div class="grid-2">
+                <div class="card"><div class="card-title">🏆 Ranking de Vitórias</div><table class="ranking-table"><thead><tr><th>Pos</th><th>Jogador</th><th>Vitórias</th><th>Taxa</th></tr></thead><tbody id="winsRanking"></tbody></table></div>
+                <div class="card"><div class="card-title">🎯 Ranking de Partidas</div><table class="ranking-table"><thead><tr><th>Pos</th><th>Jogador</th><th>Partidas</th><th>Média</th></tr></thead><tbody id="matchesRanking"></tbody></table></div>
+            </div>
+            <div class="card"><div class="card-title">🎮 Jogo Mais Jogado</div><div id="mostPlayedGames" class="grid-3"></div></div>
+            <div class="grid-2"><div class="card"><div class="card-title">📊 Distribuição de Vitórias</div><canvas id="winsChart" style="height:300px"></canvas></div>
+            <div class="card"><div class="card-title">📈 Atividade por Jogo</div><canvas id="gamesChart" style="height:300px"></canvas></div></div>
         </div>
 
-        <div class="match-register">
-            <div class="section-title">📋 REGISTRAR PARTIDA</div>
-            <button id="saveMatchBtn" class="import-btn" style="background:#2ecc71;">🏆 SALVAR PARTIDA ATUAL</button>
-            <button id="importPlayersBtn" class="import-btn" style="background:#3498db;">📚 Importar 32 Jogadores</button>
-            <div style="margin-top: 12px; font-weight: bold;">📜 Histórico de partidas</div>
-            <div id="historyList" class="history-list">Nenhuma partida</div>
-            <button id="clearHistoryBtn" style="background:#7f8c8d; width:100%; margin-top:8px;">Limpar histórico</button>
+        <!-- Registrar Partida -->
+        <div id="register" class="tab-content">
+            <div class="card">
+                <div class="card-title">➕ Registrar Nova Partida</div>
+                <div class="form-group"><label>Jogo</label><select id="gameSelect" onchange="updateGameInfo()"><option value="">Selecione</option></select></div>
+                <div id="gameInfo" style="display: none; background: rgba(20,184,166,0.1); padding: 12px; border-radius: 8px; margin-bottom: 20px;"></div>
+                <div class="form-group"><label>Selecione os Jogadores (até 4)</label><div id="playersSelectionGrid" class="players-selection-grid"></div></div>
+                <div class="card" style="border:2px solid var(--primary); margin-bottom:20px"><div class="card-title">⏱️ Cronômetro</div><div class="match-timer"><div class="timer-value" id="matchTimerDisplay">00:00:00</div><div><button class="timer-btn play" onclick="startMatchTimer()">▶ Play</button><button class="timer-btn pause" onclick="pauseMatchTimer()">⏸ Pause</button><button class="timer-btn reset" onclick="resetMatchTimer()">↻ Reset</button></div></div></div>
+                <div id="scoreboardContainer" style="display: none;"><h3>📊 Placar</h3><div class="scoreboard" id="matchScoreboard"></div></div>
+                <button class="btn btn-primary btn-block" onclick="startMatch()">🎮 Iniciar Contagem</button>
+                <button class="btn btn-success btn-block" onclick="finishMatch()">✅ Finalizar e Registrar</button>
+                <button class="btn btn-secondary btn-block" onclick="resetMatchForm()">🔄 Limpar Tudo</button>
+            </div>
         </div>
-    </div>
 
-    <div class="timer-panel">
-        <span class="timer-display" id="timerDisplay">00:00:00</span>
-        <div>
-            <button class="btn-timer" id="startTimerBtn">▶ Iniciar</button>
-            <button class="btn-timer" id="pauseTimerBtn">⏸ Pausar</button>
-            <button class="btn-timer" id="resetTimerBtn">⟳ Zerar</button>
+        <!-- Jogadores -->
+        <div id="players" class="tab-content">
+            <div class="grid-2">
+                <div class="card"><div class="card-title">👤 Adicionar Jogador</div><input type="text" id="playerName" placeholder="Nome"><button class="btn btn-primary btn-block" onclick="addPlayer()" style="margin-top: 10px;">Adicionar</button></div>
+                <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" onclick="resetPlayers()">Restaurar Padrão</button><button class="btn btn-danger btn-block" onclick="deleteAllPlayers()" style="margin-top: 10px;">Remover Todos</button></div>
+            </div>
+            <div class="card"><div class="card-title">👥 Lista de Jogadores</div><div id="playersList"></div></div>
         </div>
-        <button class="global-reset" id="globalResetAllBtn">⚠️ Zerar partidas de todos</button>
-    </div>
 
-    <div style="display: flex; gap:10px; margin: 15px 0 0 0;">
-        <input type="text" id="newPlayerName" placeholder="Nome do jogador" style="flex:1;">
-        <button id="addPlayerBtn" style="background:#1abc9c;">+ Adicionar Jogador</button>
-    </div>
+        <!-- Jogos -->
+        <div id="games" class="tab-content">
+            <div class="grid-2">
+                <div class="card"><div class="card-title">🎮 Adicionar Jogo</div><input type="text" id="gameName" placeholder="Nome"><button class="btn btn-primary btn-block" onclick="addGame()" style="margin-top: 10px;">Adicionar</button></div>
+                <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" onclick="resetGames()">Restaurar Padrão</button><button class="btn btn-danger btn-block" onclick="deleteAllGames()" style="margin-top: 10px;">Remover Todos</button></div>
+            </div>
+            <div class="card"><div class="card-title">🎲 Lista de Jogos</div><div id="gamesList"></div></div>
+        </div>
 
-    <div id="playersGrid" class="players-grid"></div>
-    <div class="footer-msg">💡 +1 / -1 = partidas do jogador | Registre partidas com o jogo selecionado</div>
+        <!-- Análises -->
+        <div id="analytics" class="tab-content"><div class="card"><div class="card-title">📊 Estatísticas Completas</div><div id="analyticsContent"></div></div></div>
+    </div>
 </div>
 
 <script>
-    // ---------- Estruturas ----------
-    let players = [];          // { id, name, partidas, lastGame?, lastDate? }
-    let nextId = 1;
-    let games = [];            // { id, name, totalPartidas, ultimaData } (totalPartidas e ultimaData são dos jogos em si, não dos jogadores)
-    let currentGameId = null;
-    let matches = [];
+    // ---------- Config Firebase (substitua pelas suas credenciais) ----------
+    const firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "iroko-clube-tabuleiro.firebaseapp.com",
+        databaseURL: "https://iroko-clube-tabuleiro-default-rtdb.firebaseio.com",
+        projectId: "iroko-clube-tabuleiro",
+        storageBucket: "iroko-clube-tabuleiro.appspot.com",
+        messagingSenderId: "123456789012",
+        appId: "1:123456789012:web:abcdef1234567890abcdef"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    let currentUser = null;
+    let players = [], games = [], matches = [];
+    let charts = {};
+    // Variáveis para partida em andamento
+    let currentMatchPlayers = [], currentMatchScores = {}, matchTimerSeconds = 0, matchTimerInterval = null, isMatchTimerRunning = false;
 
-    // Timer
-    let timerSeconds = 0;
-    let timerInterval = null;
-    let isTimerRunning = false;
-
-    // ---------- Dados dos 32 jogadores (partidas individuais) ----------
-    const historicalPlayersData = [
-        { name: "Miro King Sqn", partidas: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
-        { name: "Thi Thiago", partidas: 501, lastGame: "Luna Maris", lastDate: "dez. 28, 2025" },
-        { name: "Coroinha Dani Dani", partidas: 361, lastGame: "Dominations: Road to Civilization", lastDate: "jul. 06, 2024" },
-        { name: "Lucas Takito", partidas: 330, lastGame: "Oak", lastDate: "jan. 20, 2026" },
-        { name: "MiMi", partidas: 251, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
-        { name: "Michael el el", partidas: 147, lastGame: "Luna Maris", lastDate: "jan. 05, 2026" },
-        { name: "Lucasqueijo", partidas: 146, lastGame: "Le Havre", lastDate: "jul. 21, 2023" },
-        { name: "Murility", partidas: 102, lastGame: "Blood Rage", lastDate: "dez. 01, 2023" },
-        { name: "MarcosBat", partidas: 57, lastGame: "Tikal", lastDate: "dez. 23, 2023" },
-        { name: "Juniores", partidas: 0, lastGame: "Reykholt", lastDate: "jun. 13, 2025" },
-        { name: "And prisonbreak", partidas: 0, lastGame: "Star Realms", lastDate: "set. 23, 2025" },
-        { name: "Thiagus beicus", partidas: 0, lastGame: "Peloponnes Card Game", lastDate: "abr. 28, 2024" },
-        { name: "Nicanor", partidas: 0, lastGame: "Founders of Teotihuacan", lastDate: "abr. 25, 2024" },
-        { name: "Leo lesma", partidas: 0, lastGame: "Tree sheers for master", lastDate: "jul. 15, 2025" },
-        { name: "Thiago da gabi", partidas: 0, lastGame: "Founders of Teotihuacan", lastDate: "mar. 30, 2024" },
-        { name: "Jhonatello", partidas: 0, lastGame: "Jórvík", lastDate: "set. 10, 2022" },
-        { name: "Gabriola", partidas: 0, lastGame: "Dead of Winter: A Crossroads Game", lastDate: "jun. 27, 2022" },
-        { name: "Pachecos", partidas: 0, lastGame: "Quissama", lastDate: "mar. 17, 2022" },
-        { name: "Wilwill", partidas: 14, lastGame: "Mexico", lastDate: "jul. 15, 2022" },
-        { name: "Maykinho", partidas: 13, lastGame: "Jórvík", lastDate: "set. 17, 2022" },
-        { name: "Rhuan", partidas: 12, lastGame: "Jórvík", lastDate: "set. 10, 2022" },
-        { name: "Lucas IV", partidas: 10, lastGame: "Jórvík", lastDate: "set. 10, 2022" },
-        { name: "Izaaaky", partidas: 7, lastGame: "Dead of Winter: A Crossroads Game", lastDate: "jun. 27, 2022" },
-        { name: "Bebel", partidas: 5, lastGame: "Origins: First Builders", lastDate: "nov. 02, 2024" },
-        { name: "Morenoooo", partidas: 5, lastGame: "Great Western Trail", lastDate: "dez. 17, 2023" },
-        { name: "Joooni", partidas: 4, lastGame: "Rallyman: DIRT", lastDate: "jul. 17, 2025" },
-        { name: "Kleber", partidas: 4, lastGame: "Century: Eastern Wonders", lastDate: "abr. 09, 2022" },
-        { name: "Diogo gordinho S2", partidas: 0, lastGame: "KeyForge: Call of the Archons", lastDate: "nov. 19, 2022" },
-        { name: "Lucas III", partidas: 0, lastGame: "Fields of Green", lastDate: "jan. 23, 2022" },
-        { name: "Viny vyni", partidas: 0, lastGame: "Tekhenu: Obelisk of the Sun", lastDate: "jun. 23, 2024" },
-        { name: "Winiwini", partidas: 0, lastGame: "Azul", lastDate: "set. 03, 2022" },
-        { name: "Craudinho", partidas: 0, lastGame: "Power Grid", lastDate: "jun. 04, 2022" }
+    // ---------- DADOS PADRÃO (32 jogadores e 164 jogos) ----------
+    const DEFAULT_PLAYERS = [
+        { name: "Miro King Sqn", wins: 0, matches: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
+        { name: "Thi Thiago", wins: 0, matches: 501, lastGame: "Luna Maria", lastDate: "dez. 28, 2025" },
+        { name: "Coroinha Dani Dani", wins: 0, matches: 361, lastGame: "Dominations", lastDate: "jul. 06, 2024" },
+        { name: "Lucas Takito", wins: 0, matches: 330, lastGame: "Oak", lastDate: "jan. 20, 2026" },
+        { name: "MiMi", wins: 0, matches: 251, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
+        { name: "Michael el el", wins: 0, matches: 147, lastGame: "Luna Maria", lastDate: "jan. 05, 2026" },
+        { name: "Lucasqueijo", wins: 0, matches: 146, lastGame: "Le Havre", lastDate: "jul. 21, 2023" },
+        { name: "Murility", wins: 0, matches: 102, lastGame: "Blood Rage", lastDate: "dez. 01, 2023" },
+        { name: "MarcosBat", wins: 0, matches: 57, lastGame: "Tikal", lastDate: "dez. 23, 2023" },
+        { name: "Juniores", wins: 0, matches: 0, lastGame: "Reykholt", lastDate: "jun. 13, 2025" },
+        { name: "And prisonbreak", wins: 0, matches: 0, lastGame: "Star Realms", lastDate: "set. 23, 2025" },
+        { name: "Thiagus beicus", wins: 0, matches: 0, lastGame: "Peloponnes", lastDate: "abr. 28, 2024" },
+        { name: "Nicanor", wins: 0, matches: 0, lastGame: "Founders of Teotihuacan", lastDate: "abr. 25, 2024" },
+        { name: "Leo lesma", wins: 0, matches: 0, lastGame: "Tree Cheers for Master", lastDate: "jul. 15, 2025" },
+        { name: "Thiago da gabi", wins: 0, matches: 0, lastGame: "Founders of Teotihuacan", lastDate: "mar. 30, 2024" },
+        { name: "Jhonatello", wins: 0, matches: 0, lastGame: "Jorvik", lastDate: "set. 10, 2022" },
+        { name: "Gabriola", wins: 0, matches: 0, lastGame: "Dead of Winter", lastDate: "jun. 27, 2022" },
+        { name: "Pachecos", wins: 0, matches: 0, lastGame: "Quissama", lastDate: "mar. 17, 2022" },
+        { name: "Wilwill", wins: 0, matches: 14, lastGame: "Mexico", lastDate: "jul. 15, 2022" },
+        { name: "Maykinho", wins: 0, matches: 13, lastGame: "Jorvik", lastDate: "set. 17, 2022" },
+        { name: "Rhuan", wins: 0, matches: 12, lastGame: "Jorvik", lastDate: "set. 10, 2022" },
+        { name: "Lucas IV", wins: 0, matches: 10, lastGame: "Jorvik", lastDate: "set. 10, 2022" },
+        { name: "Izaaaky", wins: 0, matches: 7, lastGame: "Dead of Winter", lastDate: "jun. 27, 2022" },
+        { name: "Bebel", wins: 0, matches: 5, lastGame: "Origins", lastDate: "nov. 02, 2024" },
+        { name: "Morenoooo", wins: 0, matches: 5, lastGame: "Great Western Trail", lastDate: "dez. 17, 2023" },
+        { name: "Joooni", wins: 0, matches: 4, lastGame: "Rallyman Dirt", lastDate: "jul. 17, 2025" },
+        { name: "Kleber", wins: 0, matches: 4, lastGame: "Century Eastern Wonders", lastDate: "abr. 09, 2022" },
+        { name: "Diogo gordinho S2", wins: 0, matches: 0, lastGame: "Keyforge", lastDate: "nov. 19, 2022" },
+        { name: "Lucas III", wins: 0, matches: 0, lastGame: "Fields of Green", lastDate: "jan. 23, 2022" },
+        { name: "Viny vyni", wins: 0, matches: 0, lastGame: "Tekhenu", lastDate: "jun. 23, 2024" },
+        { name: "Winiwini", wins: 0, matches: 0, lastGame: "Azul", lastDate: "set. 03, 2022" },
+        { name: "Craudinho", wins: 0, matches: 0, lastGame: "Power Grid", lastDate: "jun. 04, 2022" }
     ];
 
-    // ---------- Dados dos 164 jogos (fornecidos pelo usuário) ----------
-    const gamesRawText = `
-001s:Carcassone:Maredosul=20x30/03/19
-002s:Don Capollo = 30x - 03/09/19
-003s:Blacksmith brothers = 21x - 28/06/19
-004s: The book of madness =11x 15/07/2020
-005s: Robinson crusoe = 11x 10/03/2020
-006s:Space Cantina = 19 - 18/05/19
-007s: Ovni = 22x - 17/08/19
-008s: Epic Card Game = 11x - 29/06/2021
-009s: Costa Ruana = 13x - 08/07/2021
-0010s: Dwar7s winter = 13x - 09/11/22
-0011s: Bad bones = 10x - 31/01/23
-01:Jorvik=29x - 17/09/22
-02:Smash up =30x - 01/10/22
-03:Viticulture =33x - 26/11/22
-04:Imperial Settlers = 31x - 11/10/22
-05:Puerto Rico =33x - 19/01/23
-06:Manhattan project =32x -01/01/23
-07:Terra Mystica = 46x - 22/12/25
-08:Citadel = 32x - 16/01/23
-09:Takenoko = 32x - 13/01/23
-10:kemet = 33x - 16/04/23
-11:Ticket to ride europa =32x - 25/03/23
-12:Ascencion=35x - 30/04/23
-13:Taverna =32x - 06/05/23
-14: Blood Rage = 32x - 02/12/23
-15: Lê havre = 32x - 23/08/23
-16:AViagendemarcopólo=33x-11/06/23
-17: Hadara =10x - 02/11/22
-18: Stone Age = 32x - 02/10/23
-19: Cyclades = 32x - 17/10/23
-20: Suburbia = 32x - 10/12/23
-21: Inv. do Mar do Norte=32x -06/07/23
-22: Century Road Golen = 33x-26/09/23
-23: Great Western Trail = 31x-18/12/23
-24: Tikal = 33x - 29/12/23
-25: Euphoria =32x - 25/11/23
-26: Anime Saga = 30x-23/05/23
-27:Terraforms mars = 32x-17/09/23
-28:Lorenzo il maguinifico=31x-08/01/24
-29: Schyte = 33x-30/01/24
-30: Trajan = 33x - 22/02/24
-31: Mombasa = 31x - 20/01/24
-32: Elder Sign = 16x - 31/03/20
-33: Shawdonrun crossfire = 12x - 19/04/20
-34: Wall street 1920 = 22x - 30/03/24
-35: CIV = 31x - 29/02/24
-36: Peloponnes = 23x - 01/05/24
-37: Gunrunners = 31x - 13/06/24
-38: Tiny epic Galaxy = 24x - 22/07/24
-39: Otys = 24x - 18/07/24
-40: Luna = 25x - 25/08/2024
-41: Capital Lux = 24x - 03/08/2024
-42: Gugong = 24x - 13/10/2024
-43: Gnomopolis = 21x -13/09/2024
-44: Tigris e euphrates = 22x - 08/01/2025
-45: Splendor = 30x - 25/11/2020
-46: Praetor = 25x - 03/03/2025
-47: Kanban = 20x - 17/12/2024
-48: Dragon Castle = 24x - 26/10/2024
-49: Orla exterior SW = 22x - 15/03/2025
-50: Blue moon city = 24x - 15/11/2024
-51: Coimbra = 24x - 13/04/2025
-52: Dont turn back = 23x - 29/03/2025
-53: Cry havoc = 22x - 02/05/2025
-54: Pocket mars =24x - 03/05/2025
-55: La granja = 21x - 08/06/2025
-56: Kick ass = 10x - 10/04/2021
-57: Valeria Card Kingdons =22x - 14/06/2025
-58: Reykholt = 21x - 15/06/2025
-59: Ex libris = 22x - 20/06/2025
-60: Fae = 20x - 28/06/2025
-61: Tree cheers for master= 21x - 15/07/2025
-62:Conquistadoresdemidgar=21x-02/08/2025
-63: Downforce = 21x - 15/11/2026
-64: Victorians mastermind =22x - 25/08/2025
-65: Home dream = 21x - 17/11/2025
-66: Quests of valeria = 23x - 11/01/2026
-67: Kingdom builder = 26x - 04/04/2026
-68: Ninja Camp =11x - 01/11/22
-69: Noctiluca = 10x - 03/07/2021
-70: Keyforge = 11x -19/11/2022
-71: Bruxelas 1987 = 12x - 16/07/2021
-72: Dwar7s Fall = 20x - 27/07/2021
-73: Fallout = 10x - 28/07/2021
-74: Grand Hotel Áustria = 20x - 08/08/2021
-75: Alhambra = 21x - 19/08/2021
-76: Belfort = 23x - 28/08/2021
-77: Dominion = 23x - 31/08/2021
-78: Ethnos = 25x - 14/09/2021
-79: Pulsar 2849 = 21x - 01/09/2021
-80: New york 1901 = 21x - 10/09/2021
-81: Gold West = 23x - 15/09/2021
-82: Kingsburg = 10x - 23/10/2021
-83: Chimera station = 12x - 22/11/2021
-84: The Castle of burgundy = 22x- 12/12/2021
-85: Lords of Scotland = 23x - 18/12/2021
-86: Blackout Hong-Kong =12x -27/12/2021
-87: Rajas of Ganges= 23x - 30/12/2021
-88: Tsukiji = 13x - 08/01/2022
-89: Futuropia =11x - 12/01/2022
-90: Indian Summer = 14x - 14/01/2022
-91: Noria = 24x - 20/01/2022
-92: Fields of green = 23x - 26/01/2022
-93: Cidades Submersas = 10x - 28/02/2022
-94: The few of cursed =11x - 26/03/2022
-95: Caçadores da galáxia =23x - 29/03/2022
-96: Century: mars. orient.= 10x - 09/04/2022
-97: Tzolkien: The Mayan C. =23x - 13/04/2022
-98: Viscondes R. ocidental = 10x -18/04/2022
-99: Abyss = 24x - 30/04/2022
-100: Chaparral = 24x - 15/05/2022
-101: Agrícola = 26x - 27/05/2022
-102: Aquarium = 24x - 29/05/2022
-103: Power Grid = 24x - 16/06/2022
-104: Race for The galaxy = 15x -18/06/2022
-105: D. of W. noite sem fim =25x-26/06/2022
-106: Mexica = 27x - 14/07/2022
-107: Isle of Skyer =27x - 21/07/2022
-108: Jester =28x - 26/07/2022
-109: Village = 26x - 07/08/22
-110: Rock Roll manager =26x - 19/08/22
-111: Istambul = 27x - 26/08/22
-112: Azul = 35x - 04/09/22
-113: Barony = 31x - 07/09/22
-114: Catan Card game = 12x - 09/01/23
-115: Viral = 10x - 17/03/23
-116: Dogs card game = 10x - 01/04/23
-117: Dwar7s spring = 10x - 25/04/23
-118: Fallout Shelted = 10x - 01/05/23
-119: Tiny epic dinossauros = 10x - 09/05/23
-120: Ra = 11x - 29/05/23
-121: Whistle Stop = 12x - 19/06/23
-122: Tiny epic zombies = 10x - 28/06/23
-123: Heróis de San villano = 11x - 20/07/23
-124: Ancient terrible thing = 10x - 07/09/23
-125: Quadropolis = 10x - 23/09/23
-126: Caylus =10x - 07/10/23
-127: Eldrith Horror =20x - 01/11/23
-128: Cosmos = 10x - 11/11/23
-129: Triora Cidades das Bruxa= 10x-26/11/23
-130: Santo domingo = 10x - 10/12/23
-131: Modern art = 13x - 16/12/23
-132: Whichstones = 10x - 19/12/23
-133: Its Wonderfull world = 11x -05/01/24
-134: Arquitetos do R. ocidnt = 10x - 18/01/24
-135: Paris = 10x - 04/01/24
-136: Tiny epic Pirates = 11x - 15/03/24
-137: The founders teothuracan =12x-27/04/24
-138: Alubari = 10x - 09/06/24
-139 : Pandemia = 25x - 11/06/24
-140 : Battle for Rokugan = 11x - 15/06/24
-141: Tekhenu = 11x - 28/06/24
-142: Dominations = 10x - 10/07/24
-143: Tortuga = 15x - 15/0724
-144: Santa Maria = 12x - 10/08/24
-145:Zapotec = 11x - 01/09/2024
-146: Daymio = 11x - 29/09/2024
-147: Res Arcana = 11x-19/09/2024
-148: Origins = 11x-03/11/2024
-149: Reload = 10x-28/12/2024
-150: Corrosion = 10x-21/01/2025
-151: Maharaja = 10x - 01/02/2025
-152: Hippocrates = 10x - 01/03/2025
-153: Tawantinsuyu = 11x - 23/03/2025
-154: Northgart = 11x - 18/04/2025
-155: Bonfire = 12x - 21/04/2025
-156: Tindaya = 10x - 02/06/2025
-157: Gen 7 = 10x - 11/07/2025
-158: Rallyman:Dirt = 10x - 03/08/2025
-159: Star Realms = 11x - 23/09/2025
-160: Circadianos a primeira luz = 11x - 
-161: Anacrony = 10x - 22/11/2025
-162: Libertalia = 11x - 14/12/2025
-163: Luna Maria = 10x - 05/01/2026
-164: Oak = 10x -
-    `;
+    const DEFAULT_GAMES = [
+        { name: "Carcassonne Maredosul", matches: 20, lastDate: "30/03/19" }, { name: "Don Capollo", matches: 30, lastDate: "03/09/19" }, { name: "Blacksmith Brothers", matches: 21, lastDate: "28/06/19" }, { name: "The Book of Madness", matches: 11, lastDate: "15/07/2020" }, { name: "Robinson Crusoe", matches: 11, lastDate: "10/03/2020" }, { name: "Space Cantina", matches: 19, lastDate: "18/05/19" }, { name: "Ovni", matches: 22, lastDate: "17/08/19" }, { name: "Epic Card Game", matches: 11, lastDate: "29/06/2021" }, { name: "Costa Ruana", matches: 13, lastDate: "08/07/2021" }, { name: "Dwar7s Winter", matches: 13, lastDate: "09/11/22" }, { name: "Bad Bones", matches: 10, lastDate: "31/01/23" }, { name: "Jorvik", matches: 29, lastDate: "17/09/22" }, { name: "Smash Up", matches: 30, lastDate: "01/10/22" }, { name: "Viticulture", matches: 33, lastDate: "26/11/22" }, { name: "Imperial Settlers", matches: 31, lastDate: "11/10/22" }, { name: "Puerto Rico", matches: 33, lastDate: "19/01/23" }, { name: "Manhattan Project", matches: 32, lastDate: "01/01/23" }, { name: "Terra Mystica", matches: 46, lastDate: "22/12/25" }, { name: "Citadel", matches: 32, lastDate: "16/01/23" }, { name: "Takenoko", matches: 32, lastDate: "13/01/23" }, { name: "Kemet", matches: 33, lastDate: "16/04/23" }, { name: "Ticket to Ride Europa", matches: 32, lastDate: "25/03/23" }, { name: "Ascension", matches: 35, lastDate: "30/04/23" }, { name: "Taverna", matches: 32, lastDate: "06/05/23" }, { name: "Blood Rage", matches: 32, lastDate: "02/12/23" }, { name: "Le Havre", matches: 32, lastDate: "23/08/23" }, { name: "A Viagem de Marco Pólo", matches: 33, lastDate: "11/06/23" }, { name: "Hadara", matches: 10, lastDate: "02/11/22" }, { name: "Stone Age", matches: 32, lastDate: "02/10/23" }, { name: "Cyclades", matches: 32, lastDate: "17/10/23" }, { name: "Suburbia", matches: 32, lastDate: "10/12/23" }, { name: "Investigadores do Mar do Norte", matches: 32, lastDate: "06/07/23" }, { name: "Century Road Golden", matches: 33, lastDate: "26/09/23" }, { name: "Great Western Trail", matches: 31, lastDate: "18/12/23" }, { name: "Tikal", matches: 33, lastDate: "29/12/23" }, { name: "Euphoria", matches: 32, lastDate: "25/11/23" }, { name: "Anime Saga", matches: 30, lastDate: "23/05/23" }, { name: "Terraforming Mars", matches: 32, lastDate: "17/09/23" }, { name: "Lorenzo il Magnifico", matches: 31, lastDate: "08/01/24" }, { name: "Scythe", matches: 33, lastDate: "30/01/24" }, { name: "Trajan", matches: 33, lastDate: "22/02/24" }, { name: "Mombasa", matches: 31, lastDate: "20/01/24" }, { name: "Elder Sign", matches: 16, lastDate: "31/03/20" }, { name: "Shadowrun Crossfire", matches: 12, lastDate: "19/04/20" }, { name: "Wall Street 1920", matches: 22, lastDate: "30/03/24" }, { name: "Civilization", matches: 31, lastDate: "29/02/24" }, { name: "Peloponnes", matches: 23, lastDate: "01/05/24" }, { name: "Gunrunners", matches: 31, lastDate: "13/06/24" }, { name: "Tiny Epic Galaxy", matches: 24, lastDate: "22/07/24" }, { name: "Otys", matches: 24, lastDate: "18/07/24" }, { name: "Luna", matches: 25, lastDate: "25/08/2024" }, { name: "Capital Lux", matches: 24, lastDate: "03/08/2024" }, { name: "Gugong", matches: 24, lastDate: "13/10/2024" }, { name: "Gnomopolis", matches: 21, lastDate: "13/09/2024" }, { name: "Tigris e Euphrates", matches: 22, lastDate: "08/01/2025" }, { name: "Splendor", matches: 30, lastDate: "25/11/2020" }, { name: "Praetor", matches: 25, lastDate: "03/03/2025" }, { name: "Kanban", matches: 20, lastDate: "17/12/2024" }, { name: "Dragon Castle", matches: 24, lastDate: "26/10/2024" }, { name: "Orla Exterior SW", matches: 22, lastDate: "15/03/2025" }, { name: "Blue Moon City", matches: 24, lastDate: "15/11/2024" }, { name: "Coimbra", matches: 24, lastDate: "13/04/2025" }, { name: "Dont Turn Back", matches: 23, lastDate: "29/03/2025" }, { name: "Cry Havoc", matches: 22, lastDate: "02/05/2025" }, { name: "Pocket Mars", matches: 24, lastDate: "03/05/2025" }, { name: "La Granja", matches: 21, lastDate: "08/06/2025" }, { name: "Kick Ass", matches: 10, lastDate: "10/04/2021" }, { name: "Valeria Card Kingdoms", matches: 22, lastDate: "14/06/2025" }, { name: "Reykholt", matches: 21, lastDate: "15/06/2025" }, { name: "Ex Libris", matches: 22, lastDate: "20/06/2025" }, { name: "Fae", matches: 20, lastDate: "28/06/2025" }, { name: "Tree Cheers for Master", matches: 21, lastDate: "15/07/2025" }, { name: "Conquistadores de Midgard", matches: 21, lastDate: "02/08/2025" }, { name: "Downforce", matches: 21, lastDate: "15/11/2026" }, { name: "Victorians Mastermind", matches: 22, lastDate: "25/08/2025" }, { name: "Home Dream", matches: 21, lastDate: "17/11/2025" }, { name: "Quests of Valeria", matches: 23, lastDate: "11/01/2026" }, { name: "Kingdom Builder", matches: 26, lastDate: "04/04/2026" }, { name: "Ninja Camp", matches: 11, lastDate: "01/11/22" }, { name: "Noctiluca", matches: 10, lastDate: "03/07/2021" }, { name: "Keyforge", matches: 11, lastDate: "19/11/2022" }, { name: "Bruxelas 1987", matches: 12, lastDate: "16/07/2021" }, { name: "Dwar7s Fall", matches: 20, lastDate: "27/07/2021" }, { name: "Fallout", matches: 10, lastDate: "28/07/2021" }, { name: "Grand Hotel Áustria", matches: 20, lastDate: "08/08/2021" }, { name: "Alhambra", matches: 21, lastDate: "19/08/2021" }, { name: "Belfort", matches: 23, lastDate: "28/08/2021" }, { name: "Dominion", matches: 23, lastDate: "31/08/2021" }, { name: "Ethnos", matches: 25, lastDate: "14/09/2021" }, { name: "Pulsar 2849", matches: 21, lastDate: "01/09/2021" }, { name: "New York 1901", matches: 21, lastDate: "10/09/2021" }, { name: "Gold West", matches: 23, lastDate: "15/09/2021" }, { name: "Kingsburg", matches: 10, lastDate: "23/10/2021" }, { name: "Chimera Station", matches: 12, lastDate: "22/11/2021" }, { name: "The Castle of Burgundy", matches: 22, lastDate: "12/12/2021" }, { name: "Lords of Scotland", matches: 23, lastDate: "18/12/2021" }, { name: "Blackout Hong Kong", matches: 12, lastDate: "27/12/2021" }, { name: "Rajas of Ganges", matches: 23, lastDate: "30/12/2021" }, { name: "Tsukiji", matches: 13, lastDate: "08/01/2022" }, { name: "Futuropia", matches: 11, lastDate: "12/01/2022" }, { name: "Indian Summer", matches: 14, lastDate: "14/01/2022" }, { name: "Noria", matches: 24, lastDate: "20/01/2022" }, { name: "Fields of Green", matches: 23, lastDate: "26/01/2022" }, { name: "Cidades Submersas", matches: 10, lastDate: "28/02/2022" }, { name: "The Few of Cursed", matches: 11, lastDate: "26/03/2022" }, { name: "Caçadores da Galáxia", matches: 23, lastDate: "29/03/2022" }, { name: "Century Mars Oriental", matches: 10, lastDate: "09/04/2022" }, { name: "Tzolkien The Mayan", matches: 23, lastDate: "13/04/2022" }, { name: "Viscondes Rota Ocidental", matches: 10, lastDate: "18/04/2022" }, { name: "Abyss", matches: 24, lastDate: "30/04/2022" }, { name: "Chaparral", matches: 24, lastDate: "15/05/2022" }, { name: "Agrícola", matches: 26, lastDate: "27/05/2022" }, { name: "Aquarium", matches: 24, lastDate: "29/05/2022" }, { name: "Power Grid", matches: 24, lastDate: "16/06/2022" }, { name: "Race for The Galaxy", matches: 15, lastDate: "18/06/2022" }, { name: "Dead of Winter", matches: 25, lastDate: "26/06/2022" }, { name: "Mexica", matches: 27, lastDate: "14/07/2022" }, { name: "Isle of Skye", matches: 27, lastDate: "21/07/2022" }, { name: "Jester", matches: 28, lastDate: "26/07/2022" }, { name: "Village", matches: 26, lastDate: "07/08/22" }, { name: "Rock Roll Manager", matches: 26, lastDate: "19/08/22" }, { name: "Istambul", matches: 27, lastDate: "26/08/22" }, { name: "Azul", matches: 35, lastDate: "04/09/22" }, { name: "Barony", matches: 31, lastDate: "07/09/22" }, { name: "Catan Card Game", matches: 12, lastDate: "09/01/23" }, { name: "Viral", matches: 10, lastDate: "17/03/23" }, { name: "Dogs Card Game", matches: 10, lastDate: "01/04/23" }, { name: "Dwar7s Spring", matches: 10, lastDate: "25/04/23" }, { name: "Fallout Shelter", matches: 10, lastDate: "01/05/23" }, { name: "Tiny Epic Dinosaurs", matches: 10, lastDate: "09/05/23" }, { name: "Ra", matches: 11, lastDate: "29/05/23" }, { name: "Whistle Stop", matches: 12, lastDate: "19/06/23" }, { name: "Tiny Epic Zombies", matches: 10, lastDate: "28/06/23" }, { name: "Heróis de San Villano", matches: 11, lastDate: "20/07/23" }, { name: "Ancient Terrible Thing", matches: 10, lastDate: "07/09/23" }, { name: "Quadropolis", matches: 10, lastDate: "23/09/23" }, { name: "Caylus", matches: 10, lastDate: "07/10/23" }, { name: "Eldritch Horror", matches: 20, lastDate: "01/11/23" }, { name: "Cosmos", matches: 10, lastDate: "11/11/23" }, { name: "Triora Cidades das Bruxas", matches: 10, lastDate: "26/11/23" }, { name: "Santo Domingo", matches: 10, lastDate: "10/12/23" }, { name: "Modern Art", matches: 13, lastDate: "16/12/23" }, { name: "Witchstones", matches: 10, lastDate: "19/12/23" }, { name: "Its a Wonderful World", matches: 11, lastDate: "05/01/24" }, { name: "Arquitetos do Rio Ocidental", matches: 10, lastDate: "18/01/24" }, { name: "Paris", matches: 10, lastDate: "04/01/24" }, { name: "Tiny Epic Pirates", matches: 11, lastDate: "15/03/24" }, { name: "Founders of Teotihuacan", matches: 12, lastDate: "27/04/24" }, { name: "Alubari", matches: 10, lastDate: "09/06/24" }, { name: "Pandemia", matches: 25, lastDate: "11/06/24" }, { name: "Battle for Rokugan", matches: 11, lastDate: "15/06/24" }, { name: "Tekhenu", matches: 11, lastDate: "28/06/24" }, { name: "Dominations", matches: 10, lastDate: "10/07/24" }, { name: "Tortuga", matches: 15, lastDate: "15/07/24" }, { name: "Santa Maria", matches: 12, lastDate: "10/08/24" }, { name: "Zapotec", matches: 11, lastDate: "01/09/2024" }, { name: "Daymio", matches: 11, lastDate: "29/09/2024" }, { name: "Res Arcana", matches: 11, lastDate: "19/09/2024" }, { name: "Origins", matches: 11, lastDate: "03/11/2024" }, { name: "Reload", matches: 10, lastDate: "28/12/2024" }, { name: "Corrosion", matches: 10, lastDate: "21/01/2025" }, { name: "Maharaja", matches: 10, lastDate: "01/02/2025" }, { name: "Hippocrates", matches: 10, lastDate: "01/03/2025" }, { name: "Tawantinsuyu", matches: 11, lastDate: "23/03/2025" }, { name: "Northgard", matches: 11, lastDate: "18/04/2025" }, { name: "Bonfire", matches: 12, lastDate: "21/04/2025" }, { name: "Tindaya", matches: 10, lastDate: "02/06/2025" }, { name: "Gen 7", matches: 10, lastDate: "11/07/2025" }, { name: "Rallyman Dirt", matches: 10, lastDate: "03/08/2025" }, { name: "Star Realms", matches: 11, lastDate: "23/09/2025" }, { name: "Circadianos", matches: 11, lastDate: "data desconhecida" }, { name: "Anacrony", matches: 10, lastDate: "22/11/2025" }, { name: "Libertalia", matches: 11, lastDate: "14/12/2025" }, { name: "Luna Maria", matches: 10, lastDate: "05/01/2026" }, { name: "Oak", matches: 10, lastDate: "data desconhecida" }
+    ];
 
-    function parseGamesFromText() {
-        const lines = gamesRawText.split('\n');
-        const gamesList = [];
-        for (let line of lines) {
-            line = line.trim();
-            if (!line) continue;
-            // Extrair nome, total e data
-            let nome = "";
-            let totalPartidas = 0;
-            let ultimaData = "";
-            // Tentar separar por '='
-            let eqIndex = line.indexOf('=');
-            if (eqIndex === -1) continue;
-            let nomePart = line.substring(0, eqIndex).trim();
-            let resto = line.substring(eqIndex + 1).trim();
-            // Remover possíveis prefixos tipo "001s:" ou "01:" do nome
-            let nomeLimpo = nomePart.replace(/^\d+[s:]?\s*:?\s*/, '').trim();
-            // Se ainda tiver ':' no nome (caso Carcassone:Maredosul), substituir por espaço
-            nomeLimpo = nomeLimpo.replace(/:/g, ' ');
-            nome = nomeLimpo;
-            // Extrair total e data
-            let totalMatch = resto.match(/(\d+)\s*x/);
-            if (totalMatch) totalPartidas = parseInt(totalMatch[1]);
-            // Extrair data: após o traço ou após o número
-            let dataMatch = resto.match(/-\s*(.+)$/);
-            if (dataMatch) {
-                ultimaData = dataMatch[1].trim();
-                // limpar possíveis espaços e barras
-                ultimaData = ultimaData.replace(/^[\s\-]+/, '');
-            } else {
-                // tentar pegar data direto se tiver formato dd/mm/aa
-                let dataRaw = resto.match(/(\d{1,2}\/\d{1,2}\/\d{2,4})/);
-                if (dataRaw) ultimaData = dataRaw[1];
-            }
-            if (ultimaData === "") ultimaData = "data desconhecida";
-            gamesList.push({ name: nome, totalPartidas, ultimaData });
-        }
-        return gamesList;
+    // ---------- Autenticação ----------
+    function registerUser() {
+        const email = document.getElementById('authEmail').value, pass = document.getElementById('authPassword').value;
+        if (!email || !pass) return alert('Preencha email e senha');
+        auth.createUserWithEmailAndPassword(email, pass).then(() => alert('Conta criada! Faça login.')).catch(e => alert(e.message));
+    }
+    function loginUser() {
+        const email = document.getElementById('authEmail').value, pass = document.getElementById('authPassword').value;
+        if (!email || !pass) return alert('Preencha email e senha');
+        auth.signInWithEmailAndPassword(email, pass).then(() => { currentUser = auth.currentUser; initFirebaseSync(); showMainApp(); }).catch(e => alert(e.message));
+    }
+    function logoutUser() { auth.signOut(); location.reload(); }
+    function showMainApp() { document.getElementById('authSection').style.display = 'none'; document.getElementById('mainApp').style.display = 'block'; updateAllUI(); }
+
+    // ---------- Sincronização com Firebase ----------
+    let playersRef, gamesRef, matchesRef;
+    function initFirebaseSync() {
+        if (!currentUser) return;
+        const userPath = `users/${currentUser.uid}`;
+        playersRef = db.ref(`${userPath}/players`);
+        gamesRef = db.ref(`${userPath}/games`);
+        matchesRef = db.ref(`${userPath}/matches`);
+
+        playersRef.on('value', snap => { players = snap.val() || []; updateAllUI(); });
+        gamesRef.on('value', snap => { games = snap.val() || []; updateAllUI(); });
+        matchesRef.on('value', snap => { matches = snap.val() || []; updateAllUI(); });
     }
 
-    function importGames() {
-        const parsedGames = parseGamesFromText();
-        let added = 0;
-        for (const g of parsedGames) {
-            if (!gam
+    function savePlayers() { if(playersRef) playersRef.set(players); }
+    function saveGames() { if(gamesRef) gamesRef.set(games); }
+    function saveMatches() { if(matchesRef) matchesRef.set(matches); }
+    function saveAll() { savePlayers(); saveGames(); saveMatches(); }
+
+    // Se for o primeiro login, carregar dados padrão
+    function loadDefaultDataIfNeeded() {
+        if (players.length === 0) players = DEFAULT_PLAYERS.map((p, i) => ({ id: i+1, ...p }));
+        if (games.length === 0) games = DEFAULT_GAMES.map((g, i) => ({ id: i+1, ...g }));
+        if (matches.length === 0) matches = [];
+        saveAll();
+    }
+
+    // ---------- UI comum ----------
+    function updateAllUI() {
+        loadDefaultDataIfNeeded();
+        renderPlayers(); renderGames(); updateDashboard(); updateSelects();
+        document.getElementById('totalPlayers').innerText = players.length;
+        document.getElementById('totalMatches').innerText = matches.length;
+        document.getElementById('totalGames').innerText = games.length;
+    }
+
+    // Jogadores
+    function addPlayer() {
+        const name = document.getElementById('playerName').value.trim();
+        if(!name) return alert('Digite o nome');
+        players.push({ id: Date.now(), name, wins: 0, matches: 0 });
+        savePlayers(); document.getElementById('playerName').value = '';
+    }
+    function deletePlayer(id) { if(confirm('Remover?')) players = players.filter(p => p.id !== id); savePlayers(); }
+    function deleteAllPlayers() { if(confirm('Remover TODOS?')) players = []; savePlayers(); }
+    function resetPlayers() { players = DEFAULT_PLAYERS.map((p,i)=>({ id: i+1, ...p })); savePlayers(); alert('Jogadores restaurados'); }
+    function renderPlayers() {
+        const filter = document.getElementById('playerFilter')?.value.toLowerCase() || '';
+        const listDiv = document.getElementById('playersList');
+        if(!listDiv) return;
+        let filtered = players.filter(p => p.name.toLowerCase().includes(filter));
+        if(filtered.length===0) { listDiv.innerHTML = '<div class="empty-state">Nenhum jogador</div>'; return; }
+        listDiv.innerHTML = filtered.map(p => `
+            <div class="player-card">
+                <div class="player-card-header"><div class="player-name">${p.name}</div><button class="btn btn-danger btn-small" onclick="deletePlayer(${p.id})">🗑️</button></div>
+                <div class="player-stats"><div class="player-stat-item"><div class="player-stat-value">${p.wins}</div><div class="player-stat-label">Vitórias</div></div>
+                <div class="player-stat-item"><div class="player-stat-value">${p.matches}</div><div class="player-stat-label">Partidas</div></div>
+                <div class="player-stat-item"><div class="player-stat-value">${p.matches>0?((p.wins/p.matches)*100).toFixed(0):0}%</div><div class="player-stat-label">Taxa</div></div></div>
+                ${p.lastGame?`<div style="font-size:0.85rem; background:rgba(20,184,166,0.1); padding:8px; border-radius:8px;">📅 ${p.lastGame} - ${p.lastDate}</div>`:''}
+            </div>`).join('');
+    }
+    function filterAndRenderPlayers() { renderPlayers(); }
+    function clearPlayerFilter() { if(document.getElementById('playerFilter')) document.getElementById('playerFilter').value = ''; renderPlayers(); }
+
+    // Jogos
+    function addGame() {
+        const name = document.getElementById('gameName').value.trim();
+        if(!name) return alert('Digite o nome');
+        games.push({ id: Date.now(), name, matches: 0, lastDate: '' });
+        saveGames(); document.getElementById('gameName').value = '';
+    }
+    function deleteGame(id) { if(confirm('Remover?')) games = games.filter(g => g.id !== id); saveGames(); }
+    function deleteAllGames() { if(confirm('Remover TODOS?')) games = []; saveGames(); }
+    function resetGames() { games = DEFAULT_GAMES.map((g,i)=>({ id: i+1, ...g })); saveGames(); alert('Jogos restaurados'); }
+    function renderGames() {
+        const filter = document.getElementById('gameFilter')?.value.toLowerCase() || '';
+        const listDiv = document.getElementById('gamesList');
+        if(!listDiv) return;
+        let filtered = games.filter(g => g.name.toLowerCase().includes(filter));
+        if(filtered.length===0) { listDiv.innerHTML = '<div class="empty-state">Nenhum jogo</div>'; return; }
+        listDiv.innerHTML = filtered.map(g => `
+            <div class="player-card"><div class="player-card-header"><div class="player-name">${g.name}</div><button class="btn btn-danger btn-small" onclick="deleteGame(${g.id})">🗑️</button></div>
+            <div class="player-stats"><div class="player-stat-item"><div class="player-stat-value">${g.matches}</div><div class="player-stat-label">Partidas</div></div></div>
+            ${g.lastDate?`<div style="font-size:0.85rem;">📅 Última: ${g.lastDate}</div>`:''}</div>`).join('');
+    }
+    function filterAndRenderGames() { renderGames(); }
+    function clearGameFilter() { if(document.getElementById('gameFilter')) document.getElementById('gameFilter').value = ''; renderGames(); }
+
+    // Dashboard e análises
+    function updateDashboard() {
+        const sortedWins = [...players].sort((a,b)=>b.wins-a.wins).slice(0,5);
+        document.getElementById('winsRanking').innerHTML = sortedWins.map((p,i)=>`<tr><td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'default'}">${i+1}</span></td><td>${p.name}</td><td>${p.wins}</td><td><span class="badge badge-primary">${p.matches>0?((p.wins/p.matches)*100).toFixed(0):0}%</span></td></tr>`).join('');
+        const sortedMatches = [...players].sort((a,b)=>b.matches-a.matches).slice(0,5);
+        document.getElementById('matchesRanking').innerHTML = sortedMatches.map((p,i)=>`<tr><td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'default'}">${i+1}</span></td><td>${p.name}</td><td>${p.matches}</td><td><span class="badge badge-primary">${(p.matches>0?(p.wins/p.matches):0).toFixed(2)}</span></td></tr>`).join('');
+        const gameCounts = games.map(g=>({name:g.name, count: matches.filter(m=>m.gameId===g.id).length})).sort((a,b)=>b.count-a.count).slice(0,3);
+        document.getElementById('mostPlayedGames').innerHTML = gameCounts.map(g=>`<div class="player-card"><div class="player-name">${g.name}</div><div class="player-stat-value">${g.count} partidas</div></div>`).join('') || '<div class="empty-state">Nenhum jogo ainda</div>';
+        if(charts.wins) charts.wins.destroy();
+        const topWins = [...players].sort((a,b)=>b.wins-a.wins).slice(0,5);
+        charts.wins = new Chart(document.getElementById('winsChart'), { type:'doughnut', data:{ labels:topWins.map(p=>p.name), datasets:[{ data:topWins.map(p=>p.wins), backgroundColor:['#fbbf24','#14b8a6','#f97316','#06b6d4','#8b5cf6'] }] }, options:{ responsive:true, maintainAspectRatio:false } });
+        if(charts.games) charts.games.destroy();
+        const topGames = games.map(g=>({name:g.name, count: matches.filter(m=>m.gameId===g.id).length})).sort((a,b)=>b.count-a.count).slice(0,8);
+        charts.games = new Chart(document.getElementById('gamesChart'), { type:'bar', data:{ labels:topGames.map(g=>g.name), datasets:[{ label:'Partidas', data:topGames.map(g=>g.count), backgroundColor:'#14b8a6' }] }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false } });
+        const analyticsDiv = document.getElementById('analyticsContent');
+        if(matches.length===0) analyticsDiv.innerHTML = '<div class="empty-state">Nenhuma partida registrada</div>';
+        else analyticsDiv.innerHTML = `<div class="grid-3"><div class="card"><div class="stat-value">${matches.length}</div><div class="stat-label">Total Partidas</div></div><div class="card"><div class="stat-value">${new Set(matches.map(m=>m.gameId)).size}</div><div class="stat-label">Jogos Diferentes</div></div><div class="card"><div class="stat-value">${(matches.length/new Set(matches.map(m=>m.gameId)).size).toFixed(1)}</div><div class="stat-label">Média/Jogo</div></div></div><div class="card"><div class="card-title">Últimas Partidas</div>${matches.slice(0,10).map(m=>`<div class="player-card"><strong>${m.gameName}</strong> - ${m.date}<br>🏆 ${m.winnerName}</div>`).join('')}</div>`;
+    }
+
+    // Funções da partida (placar, timer)
+    function updateGameInfo() {
+        const gameId = parseInt(document.getElementById('gameSelect').value);
+        const game = games.find(g=>g.id===gameId);
+        document.getElementById('gameInfo').style.display = game?'block':'none';
+        if(game) document.getElementById('gameInfo').innerHTML = `📊 ${game.matches} partidas | Última: ${game.lastDate||'-'}`;
+        renderPlayerSelection();
+    }
+    function renderPlayerSelection() {
+        const grid = document.getElementById('playersSelectionGrid');
+        if(!grid) return;
+        grid.innerHTML = players.map(p => `<label class="player-checkbox"><input type="checkbox" value="${p.id}" onchange="updatePlayerSelection()"><span class="player-checkbox-label">${p.name}</span></label>`).join('');
+    }
+    function updatePlayerSelection() {
+        const checkboxes = document.querySelectorAll('#playersSelectionGrid input:checked');
+        if(checkboxes.length>4) { alert('Máximo 4 jogadores'); checkboxes[checkboxes.length-1].checked=false; return; }
+        currentMatchPlayers = Array.from(checkboxes).map(cb=>{ let pid=parseInt(cb.value); let p=players.find(p=>p.id===pid); return {id:pid, name:p.name}; });
+        renderScoreboard();
+    }
+    function renderScoreboard() {
+        const container = document.getElementById('matchScoreboard'), parent = document.getElementById('scoreboardContainer');
+        if(currentMatchPlayers.length===0) { parent.style.display='none'; return; }
+        parent.style.display='block';
+        container.innerHTML = currentMatchPlayers.map(p=>`<div class="player-scoreboard"><div class="scoreboard-name">${p.name}</div><div class="scoreboard-score" id="score-${p.id}">0</div><div><button class="score-button" onclick="updateScore(${p.id},-1)">-1</button><button class="score-button" onclick="updateScore(${p.id},1)">+1</button><button class="score-button" onclick="updateScore(${p.id},-5)">-5</button><button class="score-button" onclick="updateScore(${p.id},5)">+5</button></div></div>`).join('');
+        currentMatchPlayers.forEach(p=> currentMatchScores[p.id]=0);
+    }
+    function updateScore(pid, delta) { currentMatchScores[pid] = Math.max(0, (currentMatchScores[pid]||0)+delta); document.getElementById(`score-${pid}`).innerText = currentMatchScores[pid]; }
+    function startMatch() { if(currentMatchPlayers.length===0) alert('Selecione jogadores'); else alert('Partida iniciada! Use o cronômetro.'); }
+    function finishMatch() {
+        const gameId = parseInt(document.getElementById('gameSelect').value);
+        const game = games.find(g=>g.id===gameId);
+        if(!game) return alert('Selecione um jogo');
+        if(currentMatchPlayers.length===0) return alert('Selecione jogadores');
+        let winnerId = currentMatchPlayers[0].id, maxScore = currentMatchScores[winnerId]||0;
+        currentMatchPlayers.forEach(p=>{ if((currentMatchScores[p.id]||0)>maxScore){ maxScore=currentMatchScores[p.id]; winnerId=p.id; } });
+        const winner = players.find(p=>p.id===winnerId);
+        winner.wins++;
+        currentMatchPlayers.forEach(p=>{ let pl = players.find(pl=>pl.id===p.id); if(pl) pl.matches++; });
+        game.matches++;
+        game.lastDate = new Date().toLocaleDateString('pt-BR');
+        matches.push({ id: Date.now(), gameId: game.id, gameName: game.name, winnerId: winner.id, winnerName: winner.name, players: currentMatchPlayers.map(p=>({id:p.id,name:p.name,score:currentMatchScores[p.id]||0})), duration: matchTimerSeconds, date: new Date().toLocaleString() });
+        saveAll();
+        resetMatchForm();
+        alert(`🎉 Vencedor: ${winner.name} em ${Math.floor(matchTimerSeconds/60)}min`);
+    }
+    function resetMatchForm() { currentMatchPlayers=[]; currentMatchScores={}; matchTimerSeconds=0; if(matchTimerInterval) clearInterval(matchTimerInterval); isMatchTimerRunning=false; document.getElementById('matchTimerDisplay').innerText='00:00:00'; document.getElementById('scoreboardContainer').style.display='none'; renderPlayerSelection(); }
+    function startMatchTimer() { if(isMatchTimerRunning) return; isMatchTimerRunning=true; matchTimerInterval=setInterval(()=>{ if(isMatchTimerRunning){ matchTimerSeconds++; let hrs=Math.floor(matchTimerSeconds/3600), mins=Math.floor((matchTimerSeconds%3600)/60), secs=matchTimerSeconds%60; document.getElementById('matchTimerDisplay').innerText=`${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`; } },1000); }
+    function pauseMatchTimer() { isMatchTimerRunning=false; if(matchTimerInterval) clearInterval(matchTimerInterval); }
+    function resetMatchTimer() { pauseMatchTimer(); matchTimerSeconds=0; document.getElementById('matchTimerDisplay').innerText='00:00:00'; }
+
+    function updateSelects() {
+        const gameSelect = document.getElementById('gameSelect');
+        if(gameSelect) gameSelect.innerHTML = '<option value="">Selecione</option>' + games.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+        renderPlayerSelection();
+    }
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        event.target.classList.add('active');
+        if(tabName==='register') renderPlayerSelection();
+    }
+    window.switchTab = switchTab;
+    window.addPlayer = addPlayer; window.deletePlayer = deletePlayer; window.deleteAllPlayers = deleteAllPlayers; window.resetPlayers = resetPlayers;
+    window.addGame = addGame; window.deleteGame = deleteGame; window.deleteAllGames = deleteAllGames; window.resetGames = resetGames;
+    window.updateGameInfo = updateGameInfo; window.updatePlayerSelection = updatePlayerSelection; window.updateScore = updateScore;
+    window.startMatch = startMatch; window.finishMatch = finishMatch; window.resetMatchForm = resetMatchForm;
+    window.startMatchTimer = startMatchTimer; window.pauseMatchTimer = pauseMatchTimer; window.resetMatchTimer = resetMatchTimer;
+    window.filterAndRenderPlayers = filterAndRenderPlayers; window.clearPlayerFilter = clearPlayerFilter;
+    window.filterAndRenderGames = filterAndRenderGames; window.clearGameFilter = clearGameFilter;
+    window.loginUser = loginUser; window.registerUser = registerUser; window.logoutUser = logoutUser;
+    auth.onAuthStateChanged(user => { if(user) { currentUser = user; initFirebaseSync(); showMainApp(); } else { document.getElementById('authSection').style.display = 'block'; document.getElementById('mainApp').style.display = 'none'; } });
+</script>
+</body>
+</html>
