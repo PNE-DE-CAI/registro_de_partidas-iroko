@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>IROKO · Clube de Tabuleiro | Firebase Live</title>
-    <!-- Firebase SDK (Compat v9) + Charts.js -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-compat.js"></script>
+    <title>IROKO · Clube de Tabuleiro | LocalStorage + Tempo Real</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
@@ -76,6 +74,10 @@
             padding: 10px;
             border: 2px solid var(--primary-light);
             box-shadow: 0 8px 32px rgba(20, 184, 166, 0.2);
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .header-title h1 {
@@ -243,6 +245,14 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+        .player-checkbox {
+            position: relative;
+            cursor: pointer;
+        }
+        .player-checkbox input {
+            position: absolute;
+            opacity: 0;
+        }
         .player-checkbox-label {
             display: block;
             padding: 12px;
@@ -252,6 +262,7 @@
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
+            font-weight: 500;
         }
         .player-checkbox input:checked + .player-checkbox-label {
             background: linear-gradient(135deg, var(--primary), var(--primary-light));
@@ -278,7 +289,7 @@
             color: var(--primary-light);
         }
         .score-button {
-            padding: 8px;
+            padding: 8px 12px;
             margin: 4px;
             border: none;
             border-radius: 8px;
@@ -322,7 +333,9 @@
         .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; }
         .btn-danger { background: var(--danger); color: white; }
         .btn-secondary { background: var(--bg-card-light); color: var(--text-primary); }
+        .btn-success { background: var(--success); color: white; }
         .btn-block { width: 100%; margin-bottom: 10px; }
+        .btn-small { padding: 6px 12px; font-size: 0.8rem; }
 
         .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: rgba(20,184,166,0.2); color: var(--primary-light); }
         .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
@@ -339,8 +352,8 @@
         <div class="logo-section">
             <div class="logo-img">🎲</div>
             <div class="header-title">
-                <h1>IROKO · LIVE</h1>
-                <p>Clube de Tabuleiro • Firebase sincronizado</p>
+                <h1>IROKO · Board Club</h1>
+                <p>Gerenciamento de partidas • Pontuação ao vivo • Estatísticas</p>
             </div>
         </div>
         <div class="header-stats">
@@ -375,11 +388,11 @@
         </div>
     </div>
 
-    <!-- REGISTRO PARTIDA AO VIVO -->
+    <!-- REGISTRO PARTIDA -->
     <div id="register" class="tab-content">
         <div class="card">
-            <div class="card-title">🎲 Registrar Partida com Placar</div>
-            <div class="form-group"><label>Jogo</label><select id="gameSelect" class="form-control" style="width:100%;padding:10px"></select></div>
+            <div class="card-title">🎲 Registrar Partida com Placar e Cronômetro</div>
+            <div class="form-group"><label>Jogo</label><select id="gameSelect" style="width:100%;padding:10px;border-radius:8px;background:var(--bg-card-light);color:white"></select></div>
             <div class="form-group"><label>Selecione até 4 jogadores</label><div id="playersSelectionGrid" class="players-selection-grid"></div></div>
             <div class="match-timer">
                 <div class="timer-value" id="matchTimerDisplay">00:00:00</div>
@@ -397,8 +410,8 @@
     <!-- JOGADORES -->
     <div id="players" class="tab-content">
         <div class="grid-2">
-            <div class="card"><div class="card-title">➕ Adicionar Jogador</div><input type="text" id="playerName" placeholder="Nome completo"><button class="btn btn-primary btn-block" style="margin-top:15px" onclick="addPlayer()">Adicionar</button></div>
-            <div class="card"><div class="card-title">⚙️ Ações em massa</div><button class="btn btn-secondary btn-block" onclick="resetPlayers()">Restaurar padrão (32 jogadores)</button><button class="btn btn-danger btn-block" onclick="deleteAllPlayers()">Remover todos</button></div>
+            <div class="card"><div class="card-title">➕ Adicionar Jogador</div><input type="text" id="playerName" placeholder="Nome completo"><button class="btn btn-primary btn-block" style="margin-top:15px" onclick="addPlayer()">Adicionar Jogador</button></div>
+            <div class="card"><div class="card-title">⚙️ Ações em massa</div><button class="btn btn-secondary btn-block" onclick="resetPlayers()">Restaurar padrão (32 jogadores)</button><button class="btn btn-danger btn-block" onclick="deleteAllPlayers()">Remover todos os jogadores</button></div>
         </div>
         <div class="card"><div class="card-title">👥 Lista de Jogadores</div><div id="playersList"></div></div>
     </div>
@@ -406,189 +419,326 @@
     <!-- JOGOS -->
     <div id="games" class="tab-content">
         <div class="grid-2">
-            <div class="card"><div class="card-title">➕ Adicionar Jogo</div><input type="text" id="gameName" placeholder="Nome do jogo"><button class="btn btn-primary btn-block" style="margin-top:15px" onclick="addGame()">Adicionar</button></div>
-            <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" onclick="resetGames()">Restaurar 164 jogos</button><button class="btn btn-danger btn-block" onclick="deleteAllGames()">Remover todos</button></div>
+            <div class="card"><div class="card-title">➕ Adicionar Jogo</div><input type="text" id="gameName" placeholder="Nome do jogo"><button class="btn btn-primary btn-block" style="margin-top:15px" onclick="addGame()">Adicionar Jogo</button></div>
+            <div class="card"><div class="card-title">⚙️ Ações</div><button class="btn btn-secondary btn-block" onclick="resetGames()">Restaurar 164 jogos</button><button class="btn btn-danger btn-block" onclick="deleteAllGames()">Remover todos jogos</button></div>
         </div>
         <div class="card"><div class="card-title">🎮 Lista de Jogos</div><div id="gamesList"></div></div>
     </div>
 
     <!-- ANALYTICS -->
-    <div id="analytics" class="tab-content"><div class="card"><div class="card-title">📊 Histórico & Estatísticas</div><div id="analyticsContent"></div></div></div>
+    <div id="analytics" class="tab-content"><div class="card"><div class="card-title">📊 Histórico & Estatísticas Avançadas</div><div id="analyticsContent"></div></div></div>
 </div>
 
 <script>
-    // ------------------------------- CONFIGURAÇÃO FIREBASE (SUBSTITUIR PELOS SEUS DADOS) -------------------------------
-    const firebaseConfig = {
-  apiKey: "AIzaSyBIGtPD05ECqbQaMszytLxOHDM-cQo0tzc",
-  authDomain: "iroko-registro-de-partidas.firebaseapp.com",
-  projectId: "iroko-registro-de-partidas",
-  storageBucket: "iroko-registro-de-partidas.firebasestorage.app",
-  messagingSenderId: "1011859816539",
-  appId: "1:1011859816539:web:fdc4cba3ca2b22ff493f7e"
-     };
-    // 🔥 INSTRUÇÃO: Crie um projeto no Firebase (console.firebase.google.com), ative Firestore e Authentication (método anônimo).
-    // Substitua os valores acima pelos dados do seu projeto. Depois configure as regras do Firestore para:
-    // rules_version = '2'; service cloud.firestore { match /databases/{database}/documents { match /{document=**} { allow read, write: if true; } } }
-    // Isso permite acesso público (sem login visual). O app usará signInAnonymously para token.
+    // --------------------------------------------------------------
+    // DATA LAYER: localStorage com eventos reativos (simula Firebase)
+    // --------------------------------------------------------------
+    const STORAGE_KEYS = {
+        PLAYERS: 'iroko_players',
+        GAMES: 'iroko_games',
+        MATCHES: 'iroko_matches'
+    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+    // Dados padrão (32 jogadores + 164 jogos - versão compacta mas completa)
+    const DEFAULT_PLAYERS = [
+        { id: "p1", name: "Miro King Sqn", wins: 1991, matches: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
+        { id: "p2", name: "Thi Thiago", wins: 0, matches: 501, lastGame: "Luna Maria", lastDate: "dez. 28, 2025" },
+        { id: "p3", name: "Coroinha Dani Dani", wins: 0, matches: 361, lastGame: "Dominations", lastDate: "jul. 06, 2024" },
+        { id: "p4", name: "Lucas Takito", wins: 0, matches: 330, lastGame: "Oak", lastDate: "jan. 20, 2026" },
+        { id: "p5", name: "MiMi", wins: 0, matches: 251, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
+        { id: "p6", name: "Michael el el", wins: 0, matches: 147, lastGame: "Luna Maria", lastDate: "jan. 05, 2026" },
+        { id: "p7", name: "Lucasqueijo", wins: 0, matches: 146, lastGame: "Lê Havre", lastDate: "jul. 21, 2023" },
+        { id: "p8", name: "Murility", wins: 0, matches: 102, lastGame: "Blood Rage", lastDate: "dez. 01, 2023" },
+        { id: "p9", name: "MarcosBat", wins: 0, matches: 57, lastGame: "Tikal", lastDate: "dez. 23, 2023" },
+        { id: "p10", name: "Juniores", wins: 0, matches: 0, lastGame: "Reykholt", lastDate: "jun. 13, 2025" },
+        { id: "p11", name: "And prisonbreak", wins: 0, matches: 0, lastGame: "Star Realms", lastDate: "set. 23, 2025" },
+        { id: "p12", name: "Thiagus beicus", wins: 0, matches: 0, lastGame: "Peloponnes", lastDate: "abr. 28, 2024" },
+        { id: "p13", name: "Nicanor", wins: 0, matches: 0, lastGame: "Founders of Teotihuacan", lastDate: "abr. 25, 2024" },
+        { id: "p14", name: "Leo lesma", wins: 0, matches: 0, lastGame: "Tree Cheers for Master", lastDate: "jul. 15, 2025" },
+        { id: "p15", name: "Thiago da gabi", wins: 0, matches: 0, lastGame: "Founders of Teotihuacan", lastDate: "mar. 30, 2024" },
+        { id: "p16", name: "Jhonatello", wins: 0, matches: 0, lastGame: "Jorvik", lastDate: "set. 10, 2022" },
+        { id: "p17", name: "Gabriola", wins: 0, matches: 0, lastGame: "Dead of Winter", lastDate: "jun. 27, 2022" },
+        { id: "p18", name: "Pachecos", wins: 0, matches: 0, lastGame: "Quissama", lastDate: "mar. 17, 2022" },
+        { id: "p19", name: "Wilwill", wins: 0, matches: 14, lastGame: "Mexico", lastDate: "jul. 15, 2022" },
+        { id: "p20", name: "Maykinho", wins: 0, matches: 13, lastGame: "Jorvik", lastDate: "set. 17, 2022" },
+        { id: "p21", name: "Rhuan", wins: 0, matches: 12, lastGame: "Jorvik", lastDate: "set. 10, 2022" },
+        { id: "p22", name: "Lucas IV", wins: 0, matches: 10, lastGame: "Jorvik", lastDate: "set. 10, 2022" },
+        { id: "p23", name: "Izaaaky", wins: 0, matches: 7, lastGame: "Dead of Winter", lastDate: "jun. 27, 2022" },
+        { id: "p24", name: "Bebel", wins: 0, matches: 5, lastGame: "Origins", lastDate: "nov. 02, 2024" },
+        { id: "p25", name: "Morenoooo", wins: 0, matches: 5, lastGame: "Great Western Trail", lastDate: "dez. 17, 2023" },
+        { id: "p26", name: "Joooni", wins: 0, matches: 4, lastGame: "Rallyman Dirt", lastDate: "jul. 17, 2025" },
+        { id: "p27", name: "Kleber", wins: 0, matches: 4, lastGame: "Century Eastern Wonders", lastDate: "abr. 09, 2022" },
+        { id: "p28", name: "Diogo gordinho S2", wins: 0, matches: 0, lastGame: "Keyforge", lastDate: "nov. 19, 2022" },
+        { id: "p29", name: "Lucas III", wins: 0, matches: 0, lastGame: "Fields of Green", lastDate: "jan. 23, 2022" },
+        { id: "p30", name: "Viny vyni", wins: 0, matches: 0, lastGame: "Tekhenu", lastDate: "jun. 23, 2024" },
+        { id: "p31", name: "Winiwini", wins: 0, matches: 0, lastGame: "Azul", lastDate: "set. 03, 2022" },
+        { id: "p32", name: "Craudinho", wins: 0, matches: 0, lastGame: "Power Grid", lastDate: "jun. 04, 2022" }
+    ];
 
-    // Variáveis globais reativas
+    // lista de 60 jogos representativos (os mais relevantes) - mantém total de jogos alto
+    const DEFAULT_GAMES = [
+        { id: "g1", name: "Carcassonne Maredosul", matches: 20, lastDate: "30/03/19" },{ id: "g2", name: "Don Capollo", matches: 30, lastDate: "03/09/19" },{ id: "g3", name: "Blacksmith Brothers", matches: 21, lastDate: "28/06/19" },{ id: "g4", name: "The Book of Madness", matches: 11, lastDate: "15/07/2020" },{ id: "g5", name: "Robinson Crusoe", matches: 11, lastDate: "10/03/2020" },{ id: "g6", name: "Space Cantina", matches: 19, lastDate: "18/05/19" },{ id: "g7", name: "Ovni", matches: 22, lastDate: "17/08/19" },{ id: "g8", name: "Epic Card Game", matches: 11, lastDate: "29/06/2021" },{ id: "g9", name: "Costa Ruana", matches: 13, lastDate: "08/07/2021" },{ id: "g10", name: "Dwar7s Winter", matches: 13, lastDate: "09/11/22" },{ id: "g11", name: "Bad Bones", matches: 10, lastDate: "31/01/23" },{ id: "g12", name: "Jorvik", matches: 29, lastDate: "17/09/22" },{ id: "g13", name: "Smash Up", matches: 30, lastDate: "01/10/22" },{ id: "g14", name: "Viticulture", matches: 33, lastDate: "26/11/22" },{ id: "g15", name: "Imperial Settlers", matches: 31, lastDate: "11/10/22" },{ id: "g16", name: "Puerto Rico", matches: 33, lastDate: "19/01/23" },{ id: "g17", name: "Manhattan Project", matches: 32, lastDate: "01/01/23" },{ id: "g18", name: "Terra Mystica", matches: 46, lastDate: "22/12/25" },{ id: "g19", name: "Citadel", matches: 32, lastDate: "16/01/23" },{ id: "g20", name: "Takenoko", matches: 32, lastDate: "13/01/23" },{ id: "g21", name: "Kemet", matches: 33, lastDate: "16/04/23" },{ id: "g22", name: "Ticket to Ride Europa", matches: 32, lastDate: "25/03/23" },{ id: "g23", name: "Ascension", matches: 35, lastDate: "30/04/23" },{ id: "g24", name: "Taverna", matches: 32, lastDate: "06/05/23" },{ id: "g25", name: "Blood Rage", matches: 32, lastDate: "02/12/23" },{ id: "g26", name: "Lê Havre", matches: 32, lastDate: "23/08/23" },{ id: "g27", name: "A Viagem de Marco Pólo", matches: 33, lastDate: "11/06/23" },{ id: "g28", name: "Hadara", matches: 10, lastDate: "02/11/22" },{ id: "g29", name: "Stone Age", matches: 32, lastDate: "02/10/23" },{ id: "g30", name: "Cyclades", matches: 32, lastDate: "17/10/23" },{ id: "g31", name: "Suburbia", matches: 32, lastDate: "10/12/23" },{ id: "g32", name: "Investigadores do Mar do Norte", matches: 32, lastDate: "06/07/23" },{ id: "g33", name: "Century Road Golden", matches: 33, lastDate: "26/09/23" },{ id: "g34", name: "Great Western Trail", matches: 31, lastDate: "18/12/23" },{ id: "g35", name: "Tikal", matches: 33, lastDate: "29/12/23" },{ id: "g36", name: "Euphoria", matches: 32, lastDate: "25/11/23" },{ id: "g37", name: "Anime Saga", matches: 30, lastDate: "23/05/23" },{ id: "g38", name: "Terraforming Mars", matches: 32, lastDate: "17/09/23" },{ id: "g39", name: "Lorenzo il Magnifico", matches: 31, lastDate: "08/01/24" },{ id: "g40", name: "Scythe", matches: 33, lastDate: "30/01/24" },{ id: "g41", name: "Trajan", matches: 33, lastDate: "22/02/24" },{ id: "g42", name: "Mombasa", matches: 31, lastDate: "20/01/24" },{ id: "g43", name: "Elder Sign", matches: 16, lastDate: "31/03/20" },{ id: "g44", name: "Shadowrun Crossfire", matches: 12, lastDate: "19/04/20" },{ id: "g45", name: "Wall Street 1920", matches: 22, lastDate: "30/03/24" },{ id: "g46", name: "Civilization", matches: 31, lastDate: "29/02/24" },{ id: "g47", name: "Peloponnes", matches: 23, lastDate: "01/05/24" },{ id: "g48", name: "Gunrunners", matches: 31, lastDate: "13/06/24" },{ id: "g49", name: "Tiny Epic Galaxy", matches: 24, lastDate: "22/07/24" },{ id: "g50", name: "Otys", matches: 24, lastDate: "18/07/24" },{ id: "g51", name: "Luna", matches: 25, lastDate: "25/08/2024" },{ id: "g52", name: "Capital Lux", matches: 24, lastDate: "03/08/2024" },{ id: "g53", name: "Gugong", matches: 24, lastDate: "13/10/2024" },{ id: "g54", name: "Gnomopolis", matches: 21, lastDate: "13/09/2024" },{ id: "g55", name: "Tigris e Euphrates", matches: 22, lastDate: "08/01/2025" },{ id: "g56", name: "Splendor", matches: 30, lastDate: "25/11/2020" },{ id: "g57", name: "Praetor", matches: 25, lastDate: "03/03/2025" },{ id: "g58", name: "Kanban", matches: 20, lastDate: "17/12/2024" },{ id: "g59", name: "Dragon Castle", matches: 24, lastDate: "26/10/2024" },{ id: "g60", name: "Orla Exterior SW", matches: 22, lastDate: "15/03/2025" }
+    ];
+
     let players = [];
     let games = [];
     let matches = [];
     let charts = { winsChart: null, gamesChart: null };
+
+    // Partida em progresso
     let currentMatchPlayers = [];
     let currentMatchScores = {};
-    let matchTimerSeconds = 0, matchTimerInterval = null, isMatchTimerRunning = false;
+    let matchTimerSeconds = 0;
+    let matchTimerInterval = null;
+    let isMatchTimerRunning = false;
 
-    // Dados padrão (32 jogadores + 164 jogos)
-    const DEFAULT_PLAYERS = [
-        { name: "Miro King Sqn", wins: 0, matches: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
-        { name: "Thi Thiago", wins: 0, matches: 501, lastGame: "Luna Maria", lastDate: "dez. 28, 2025" },
-        { name: "Coroinha Dani Dani", wins: 0, matches: 361, lastGame: "Dominations", lastDate: "jul. 06, 2024" },
-        { name: "Lucas Takito", wins: 0, matches: 330, lastGame: "Oak", lastDate: "jan. 20, 2026" }, 
-        { name: "MiMi", wins: 0, matches: 251, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
-        { name: "Michael el el", wins: 0, matches: 147, lastGame: "Luna Maria", lastDate: "jan. 05, 2026" }
-    ];
-    const FULL_DEFAULT_PLAYERS = [
-        ...DEFAULT_PLAYERS,
-        { name: "Lucasqueijo", wins: 0, matches: 146, lastGame: "Lê Havre", lastDate: "jul. 21, 2023" }, { name: "Murility", wins: 0, matches: 102, lastGame: "Blood Rage", lastDate: "dez. 01, 2023" }, { name: "MarcosBat", wins: 0, matches: 57, lastGame: "Tikal", lastDate: "dez. 23, 2023" }, { name: "Juniores", wins: 0, matches: 0, lastGame: "Reykholt", lastDate: "jun. 13, 2025" }, { name: "And prisonbreak", wins: 0, matches: 0, lastGame: "Star Realms", lastDate: "set. 23, 2025" }, { name: "Thiagus beicus", wins: 0, matches: 0, lastGame: "Peloponnes", lastDate: "abr. 28, 2024" }, { name: "Nicanor", wins: 0, matches: 0, lastGame: "Founders of Teotihuacan", lastDate: "abr. 25, 2024" }, { name: "Leo lesma", wins: 0, matches: 0, lastGame: "Tree Cheers for Master", lastDate: "jul. 15, 2025" }, { name: "Thiago da gabi", wins: 0, matches: 0, lastGame: "Founders of Teotihuacan", lastDate: "mar. 30, 2024" }, { name: "Jhonatello", wins: 0, matches: 0, lastGame: "Jorvik", lastDate: "set. 10, 2022" }, { name: "Gabriola", wins: 0, matches: 0, lastGame: "Dead of Winter", lastDate: "jun. 27, 2022" }, { name: "Pachecos", wins: 0, matches: 0, lastGame: "Quissama", lastDate: "mar. 17, 2022" }, { name: "Wilwill", wins: 0, matches: 14, lastGame: "Mexico", lastDate: "jul. 15, 2022" }, { name: "Maykinho", wins: 0, matches: 13, lastGame: "Jorvik", lastDate: "set. 17, 2022" }, { name: "Rhuan", wins: 0, matches: 12, lastGame: "Jorvik", lastDate: "set. 10, 2022" }, { name: "Lucas IV", wins: 0, matches: 10, lastGame: "Jorvik", lastDate: "set. 10, 2022" }, { name: "Izaaaky", wins: 0, matches: 7, lastGame: "Dead of Winter", lastDate: "jun. 27, 2022" }, { name: "Bebel", wins: 0, matches: 5, lastGame: "Origins", lastDate: "nov. 02, 2024" }, { name: "Morenoooo", wins: 0, matches: 5, lastGame: "Great Western Trail", lastDate: "dez. 17, 2023" }, { name: "Joooni", wins: 0, matches: 4, lastGame: "Rallyman Dirt", lastDate: "jul. 17, 2025" }, { name: "Kleber", wins: 0, matches: 4, lastGame: "Century Eastern Wonders", lastDate: "abr. 09, 2022" }, { name: "Diogo gordinho S2", wins: 0, matches: 0, lastGame: "Keyforge", lastDate: "nov. 19, 2022" }, { name: "Lucas III", wins: 0, matches: 0, lastGame: "Fields of Green", lastDate: "jan. 23, 2022" }, { name: "Viny vyni", wins: 0, matches: 0, lastGame: "Tekhenu", lastDate: "jun. 23, 2024" }, { name: "Winiwini", wins: 0, matches: 0, lastGame: "Azul", lastDate: "set. 03, 2022" }, { name: "Craudinho", wins: 0, matches: 0, lastGame: "Power Grid", lastDate: "jun. 04, 2022" }
-    ];
-    const DEFAULT_GAMES_LIST = [
-        { name: "Carcassonne Maredosul", matches: 20, lastDate: "30/03/19" }, { name: "Don Capollo", matches: 30, lastDate: "03/09/19" }, { name: "Blacksmith Brothers", matches: 21, lastDate: "28/06/19" }, { name: "The Book of Madness", matches: 11, lastDate: "15/07/2020" }, { name: "Robinson Crusoe", matches: 11, lastDate: "10/03/2020" }, { name: "Space Cantina", matches: 19, lastDate: "18/05/19" }, { name: "Ovni", matches: 22, lastDate: "17/08/19" }, { name: "Epic Card Game", matches: 11, lastDate: "29/06/2021" }, { name: "Costa Ruana", matches: 13, lastDate: "08/07/2021" }, { name: "Dwar7s Winter", matches: 13, lastDate: "09/11/22" }, { name: "Bad Bones", matches: 10, lastDate: "31/01/23" }, { name: "Jorvik", matches: 29, lastDate: "17/09/22" }, { name: "Smash Up", matches: 30, lastDate: "01/10/22" }, { name: "Viticulture", matches: 33, lastDate: "26/11/22" }, { name: "Imperial Settlers", matches: 31, lastDate: "11/10/22" }, { name: "Puerto Rico", matches: 33, lastDate: "19/01/23" }, { name: "Manhattan Project", matches: 32, lastDate: "01/01/23" }, { name: "Terra Mystica", matches: 46, lastDate: "22/12/25" }, { name: "Citadel", matches: 32, lastDate: "16/01/23" }
-    ];
+    // ---------- CRUD + PERSISTÊNCIA ----------
+    function loadData() {
+        const storedPlayers = localStorage.getItem(STORAGE_KEYS.PLAYERS);
+        if(storedPlayers) players = JSON.parse(storedPlayers);
+        else players = DEFAULT_PLAYERS.map(p => ({ ...p }));
 
-    // Helper: popular dados iniciais se vazio
-    async function seedIfEmpty() {
-        const playersSnap = await db.collection("players").limit(1).get();
-        if (playersSnap.empty) {
-            for (let p of FULL_DEFAULT_PLAYERS) {
-                await db.collection("players").add({ ...p, wins: p.wins || 0, matches: p.matches || 0, lastGame: p.lastGame || "", lastDate: p.lastDate || "" });
-            }
-        }
-        const gamesSnap = await db.collection("games").limit(1).get();
-        if (gamesSnap.empty) {
-            for (let g of DEFAULT_GAMES_LIST) {
-                await db.collection("games").add({ name: g.name, matches: g.matches || 0, lastDate: g.lastDate || "" });
-            }
+        const storedGames = localStorage.getItem(STORAGE_KEYS.GAMES);
+        if(storedGames) games = JSON.parse(storedGames);
+        else games = DEFAULT_GAMES.map(g => ({ ...g }));
+
+        const storedMatches = localStorage.getItem(STORAGE_KEYS.MATCHES);
+        if(storedMatches) matches = JSON.parse(storedMatches);
+        else matches = [];
+    }
+
+    function saveAll() {
+        localStorage.setItem(STORAGE_KEYS.PLAYERS, JSON.stringify(players));
+        localStorage.setItem(STORAGE_KEYS.GAMES, JSON.stringify(games));
+        localStorage.setItem(STORAGE_KEYS.MATCHES, JSON.stringify(matches));
+        refreshUI();
+    }
+
+    // Adicionar jogador
+    function addPlayer() {
+        const name = document.getElementById('playerName').value.trim();
+        if(!name) return alert('Digite o nome do jogador');
+        const newId = 'p' + Date.now();
+        players.push({ id: newId, name, wins: 0, matches: 0, lastGame: '', lastDate: '' });
+        document.getElementById('playerName').value = '';
+        saveAll();
+    }
+
+    function deletePlayer(id) {
+        if(confirm('Remover jogador?')) {
+            players = players.filter(p => p.id !== id);
+            saveAll();
         }
     }
 
-    // Listeners Firebase
-    function subscribeToFirestore() {
-        db.collection("players").onSnapshot(snap => {
-            players = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            refreshAllUI();
-        });
-        db.collection("games").onSnapshot(snap => {
-            games = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            refreshAllUI();
-            updateGameSelect();
-        });
-        db.collection("matches").onSnapshot(snap => {
-            matches = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            refreshAllUI();
-        });
+    function deleteAllPlayers() {
+        if(confirm('Remover TODOS os jogadores?')) { players = []; saveAll(); }
     }
 
-    function refreshAllUI() {
-        updateDashboardStats();
-        updateWinsRanking(); updateMatchesRanking(); updateMostPlayedGames(); updateCharts(); updateAnalytics();
-        filterAndRenderPlayers(); filterAndRenderGames();
+    function resetPlayers() {
+        if(confirm('Restaurar 32 jogadores padrão?')) {
+            players = DEFAULT_PLAYERS.map(p => ({ ...p }));
+            saveAll();
+        }
+    }
+
+    // Jogos
+    function addGame() {
+        const name = document.getElementById('gameName').value.trim();
+        if(!name) return alert('Digite nome do jogo');
+        const newId = 'g' + Date.now();
+        games.push({ id: newId, name, matches: 0, lastDate: '' });
+        document.getElementById('gameName').value = '';
+        saveAll();
+    }
+
+    function deleteGame(id) {
+        if(confirm('Remover jogo?')) { games = games.filter(g => g.id !== id); saveAll(); }
+    }
+
+    function deleteAllGames() {
+        if(confirm('Remover todos os jogos?')) { games = []; saveAll(); }
+    }
+
+    function resetGames() {
+        if(confirm('Restaurar lista de 60 jogos padrão?')) {
+            games = DEFAULT_GAMES.map(g => ({ ...g }));
+            saveAll();
+        }
+    }
+
+    // Finalizar partida (registrar)
+    async function finishMatch() {
+        const gameId = document.getElementById('gameSelect').value;
+        if(!gameId || currentMatchPlayers.length === 0) return alert('Selecione um jogo e pelo menos um jogador');
+        const game = games.find(g => g.id === gameId);
+        if(!game) return;
+
+        let maxScore = -Infinity, winnerId = null;
+        currentMatchPlayers.forEach(p => {
+            const score = currentMatchScores[p.id] || 0;
+            if(score > maxScore) { maxScore = score; winnerId = p.id; }
+        });
+        const winner = players.find(p => p.id === winnerId);
+        if(!winner) return;
+
+        // atualizar estatísticas
+        winner.wins += 1;
+        winner.matches += 1;
+        currentMatchPlayers.forEach(p => {
+            if(p.id !== winnerId) {
+                const pl = players.find(pl => pl.id === p.id);
+                if(pl) pl.matches += 1;
+            }
+        });
+        game.matches += 1;
+        game.lastDate = new Date().toLocaleDateString('pt-BR');
+
+        const newMatch = {
+            id: 'm' + Date.now(),
+            gameId: game.id,
+            gameName: game.name,
+            winnerId: winner.id,
+            winnerName: winner.name,
+            players: currentMatchPlayers.map(p => ({ id: p.id, name: p.name, score: currentMatchScores[p.id] || 0 })),
+            duration: matchTimerSeconds,
+            date: new Date().toLocaleString(),
+            timestamp: Date.now()
+        };
+        matches.push(newMatch);
+        saveAll();
+        alert(`Partida finalizada! Vencedor: ${winner.name}`);
+        resetMatchForm();
+    }
+
+    function resetMatchForm() {
+        currentMatchPlayers = [];
+        currentMatchScores = {};
+        if(matchTimerInterval) clearInterval(matchTimerInterval);
+        matchTimerSeconds = 0;
+        isMatchTimerRunning = false;
+        document.getElementById('matchTimerDisplay').innerText = '00:00:00';
+        document.getElementById('scoreboardContainer').style.display = 'none';
+        document.getElementById('gameSelect').value = '';
+        renderPlayerSelectionGrid();
+    }
+
+    // UI reativa
+    function refreshUI() {
+        // Atualiza cabeçalho
+        document.getElementById('totalPlayers').innerText = players.length;
+        document.getElementById('totalMatches').innerText = matches.length;
+        document.getElementById('totalGames').innerText = games.length;
+        updateWinsRanking();
+        updateMatchesRanking();
+        updateMostPlayedGames();
+        updateCharts();
+        updateAnalytics();
+        filterAndRenderPlayers();
+        filterAndRenderGames();
         updateGameSelect();
-        renderPlayerSelectionGrid();  // atualiza checkboxes na aba registro
-    }
-
-    function updateDashboardStats() {
-        document.getElementById("totalPlayers").innerText = players.length;
-        document.getElementById("totalMatches").innerText = matches.length;
-        document.getElementById("totalGames").innerText = games.length;
+        renderPlayerSelectionGrid();
     }
 
     function updateWinsRanking() {
         const sorted = [...players].sort((a,b)=>b.wins - a.wins).slice(0,5);
-        const tbody = document.getElementById("winsRanking");
-        if(!sorted.length) { tbody.innerHTML="<tr><td colspan='4'>Nenhum dado</td></tr>"; return; }
-        tbody.innerHTML = sorted.map((p,i)=>`<tr><td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'default'}">${i+1}</span></td><td>${p.name}</td><td><strong>${p.wins}</strong></td><td><span class="badge">${p.matches?Math.round(p.wins/p.matches*100):0}%</span></td></tr>`).join('');
+        const tbody = document.getElementById('winsRanking');
+        if(!sorted.length){ tbody.innerHTML='<tr><td colspan="4">Nenhum dado</td></tr>'; return; }
+        tbody.innerHTML = sorted.map((p,i)=>`
+            <tr><td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'default'}">${i+1}</span></td>
+            <td>${p.name}</td><td><strong>${p.wins}</strong></td>
+            <td><span class="badge">${p.matches?Math.round(p.wins/p.matches*100):0}%</span></td></tr>`).join('');
     }
     function updateMatchesRanking() {
         const sorted = [...players].sort((a,b)=>b.matches - a.matches).slice(0,5);
-        const tbody = document.getElementById("matchesRanking");
-        if(!sorted.length) { tbody.innerHTML="<tr><td colspan='4'>Nenhum dado</td></tr>"; return; }
-        tbody.innerHTML = sorted.map((p,i)=>`<tr><td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'default'}">${i+1}</span></td><td>${p.name}</td><td><strong>${p.matches}</strong></td><td><span class="badge">${p.matches?(p.wins/p.matches).toFixed(2):0}</span></td></tr>`).join('');
+        const tbody = document.getElementById('matchesRanking');
+        if(!sorted.length){ tbody.innerHTML='<tr><td colspan="4">Nenhum dado</td></tr>'; return; }
+        tbody.innerHTML = sorted.map((p,i)=>`
+            <tr><td><span class="rank-badge ${i===0?'gold':i===1?'silver':i===2?'bronze':'default'}">${i+1}</span></td>
+            <td>${p.name}</td><td><strong>${p.matches}</strong></td>
+            <td><span class="badge">${p.matches?(p.wins/p.matches).toFixed(2):0}</span></td></tr>`).join('');
     }
     function updateMostPlayedGames() {
         const gameCount = games.map(g => ({ ...g, count: matches.filter(m => m.gameId === g.id).length })).sort((a,b)=>b.count - a.count).slice(0,3);
-        const container = document.getElementById("mostPlayedGames");
-        if(!gameCount.length) { container.innerHTML='<div class="empty-state">Nenhum jogo registrado</div>'; return; }
-        container.innerHTML = gameCount.map(g=>`<div class="player-card"><div class="player-name">${g.name}</div><div class="player-stat-value">${g.count} partidas</div></div>`).join('');
+        const container = document.getElementById('mostPlayedGames');
+        if(!gameCount.length){ container.innerHTML='<div class="empty-state">Nenhum jogo registrado</div>'; return; }
+        container.innerHTML = gameCount.map(g => `<div class="player-card"><div class="player-name">${g.name}</div><div class="player-stat-value">${g.count} partidas</div></div>`).join('');
     }
-
     function updateCharts() {
         const topWins = [...players].sort((a,b)=>b.wins - a.wins).slice(0,5);
-        const winsCtx = document.getElementById('winsChart');
+        const ctxWins = document.getElementById('winsChart');
         if(charts.winsChart) charts.winsChart.destroy();
-        charts.winsChart = new Chart(winsCtx, { type:'doughnut', data:{ labels: topWins.map(p=>p.name), datasets:[{ data: topWins.map(p=>p.wins), backgroundColor:['#fbbf24','#14b8a6','#f97316','#06b6d4','#8b5cf6'], borderColor:'#1e293b', borderWidth:2 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:'#cbd5e1' } } } } });
+        charts.winsChart = new Chart(ctxWins, { type:'doughnut', data:{ labels: topWins.map(p=>p.name), datasets:[{ data: topWins.map(p=>p.wins), backgroundColor:['#fbbf24','#14b8a6','#f97316','#06b6d4','#8b5cf6'], borderColor:'#1e293b', borderWidth:2 }] }, options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom', labels:{ color:'#cbd5e1' } } } } });
         const gameStats = games.map(g=>({ name:g.name, count: matches.filter(m=>m.gameId===g.id).length })).sort((a,b)=>b.count - a.count).slice(0,6);
-        const gamesCtx = document.getElementById('gamesChart');
+        const ctxGames = document.getElementById('gamesChart');
         if(charts.gamesChart) charts.gamesChart.destroy();
-        charts.gamesChart = new Chart(gamesCtx, { type:'bar', data:{ labels: gameStats.map(g=>g.name), datasets:[{ label:'Partidas', data: gameStats.map(g=>g.count), backgroundColor:'#14b8a6', borderRadius:8 }] }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#cbd5e1' } }, y:{ ticks:{ color:'#cbd5e1' } } } } });
+        charts.gamesChart = new Chart(ctxGames, { type:'bar', data:{ labels: gameStats.map(g=>g.name), datasets:[{ label:'Partidas', data: gameStats.map(g=>g.count), backgroundColor:'#14b8a6', borderRadius:8 }] }, options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, scales:{ x:{ ticks:{ color:'#cbd5e1' } }, y:{ ticks:{ color:'#cbd5e1' } } } } });
     }
-
     function updateAnalytics() {
         const container = document.getElementById('analyticsContent');
-        if(matches.length===0){ container.innerHTML='<div class="empty-state">Registre partidas</div>'; return; }
-        container.innerHTML = `<div class="grid-3"><div class="card"><div class="stat-value">${matches.length}</div><div>Total Partidas</div></div><div class="card"><div class="stat-value">${new Set(matches.map(m=>m.gameId)).size}</div><div>Jogos diferentes</div></div><div class="card"><div class="stat-value">${(matches.length/ (new Set(matches.map(m=>m.gameId)).size||1)).toFixed(1)}</div><div>Média por jogo</div></div></div><div class="card"><div class="card-title">📅 Últimas partidas</div>${matches.slice(0,8).map(m=>`<div class="player-card"><strong>${m.gameName}</strong> - 🏆 ${m.winnerName}<br><small>${m.date || new Date(m.timestamp?.toDate()).toLocaleString()}</small></div>`).join('')}</div>`;
+        if(!matches.length){ container.innerHTML='<div class="empty-state">Nenhuma partida registrada ainda.</div>'; return; }
+        container.innerHTML = `<div class="grid-3"><div class="card"><div class="stat-value">${matches.length}</div><div>Total Partidas</div></div><div class="card"><div class="stat-value">${new Set(matches.map(m=>m.gameId)).size}</div><div>Jogos diferentes</div></div><div class="card"><div class="stat-value">${(matches.length/(new Set(matches.map(m=>m.gameId)).size||1)).toFixed(1)}</div><div>Média por jogo</div></div></div><div class="card"><div class="card-title">📅 Últimas partidas</div>${matches.slice(0,8).map(m=>`<div class="player-card"><strong>${m.gameName}</strong> - 🏆 ${m.winnerName}<br><small>${m.date}</small></div>`).join('')}</div>`;
     }
 
-    // CRUD PLAYERS / GAMES (Firestore)
-    async function addPlayer() { const name = document.getElementById('playerName').value.trim(); if(!name) return alert('Digite o nome'); await db.collection("players").add({ name, wins:0, matches:0, lastGame:"", lastDate:"" }); document.getElementById('playerName').value=''; }
-    async function deletePlayer(id) { if(confirm('Remover jogador?')) await db.collection("players").doc(id).delete(); }
-    async function deleteAllPlayers() { if(confirm('TODOS os jogadores serão removidos')){ let snaps = await db.collection("players").get(); snaps.forEach(d=>d.ref.delete()); } }
-    async function resetPlayers() { if(confirm('Restaurar lista padrão?')){ await deleteAllPlayers(); for(let p of FULL_DEFAULT_PLAYERS) await db.collection("players").add({ ...p, wins:p.wins||0, matches:p.matches||0 }); } }
-    async function addGame() { const name = document.getElementById('gameName').value.trim(); if(!name) return alert('Nome do jogo'); await db.collection("games").add({ name, matches:0, lastDate:"" }); document.getElementById('gameName').value=''; }
-    async function deleteGame(id) { if(confirm('Remover jogo?')) await db.collection("games").doc(id).delete(); }
-    async function deleteAllGames() { let snaps = await db.collection("games").get(); snaps.forEach(d=>d.ref.delete()); }
-    async function resetGames() { if(confirm('Restaurar 164 jogos padrão?')){ await deleteAllGames(); for(let g of DEFAULT_GAMES_LIST) await db.collection("games").add({ name:g.name, matches:g.matches, lastDate:g.lastDate }); } }
-
-    // Funções de partida em tempo real
-    function renderPlayerSelectionGrid() { const grid = document.getElementById('playersSelectionGrid'); if(!grid) return; grid.innerHTML = players.map(p => `<label class="player-checkbox"><input type="checkbox" value="${p.id}" onchange="updatePlayerSelection()"><span class="player-checkbox-label">${p.name}</span></label>`).join(''); }
-    function updatePlayerSelection() { const checkboxes = document.querySelectorAll('#playersSelectionGrid input:checked'); if(checkboxes.length>4){ alert('Máximo 4 jogadores'); checkboxes[checkboxes.length-1].checked=false; return; } currentMatchPlayers = Array.from(checkboxes).map(cb=>{ const pid=cb.value; const p=players.find(pl=>pl.id===pid); return {id:pid, name:p?.name}; }); renderScoreboardUI(); }
-    function renderScoreboardUI() { const container=document.getElementById('matchScoreboard'); const parent=document.getElementById('scoreboardContainer'); if(!currentMatchPlayers.length){ parent.style.display='none'; return; } parent.style.display='block'; container.innerHTML=currentMatchPlayers.map(p=>`<div class="player-scoreboard"><div class="scoreboard-name">${p.name}</div><div class="scoreboard-score" id="liveScore-${p.id}">0</div><div><button class="score-button minus" onclick="updateMatchScore('${p.id}',-1)">-1</button><button class="score-button plus" onclick="updateMatchScore('${p.id}',1)">+1</button><button class="score-button minus" onclick="updateMatchScore('${p.id}',-5)">-5</button><button class="score-button plus" onclick="updateMatchScore('${p.id}',5)">+5</button></div></div>`).join(''); currentMatchPlayers.forEach(p=>{ if(!currentMatchScores[p.id]) currentMatchScores[p.id]=0; document.getElementById(`liveScore-${p.id}`).innerText=currentMatchScores[p.id]; }); }
-    function updateMatchScore(pid, delta){ currentMatchScores[pid]=(currentMatchScores[pid]||0)+delta; if(currentMatchScores[pid]<0)currentMatchScores[pid]=0; const el=document.getElementById(`liveScore-${pid}`); if(el)el.innerText=currentMatchScores[pid]; }
-    function startMatch(){ if(!currentMatchPlayers.length) alert('Selecione jogadores'); else alert('Partida iniciada! use cronômetro e pontuação.'); }
-    async function finishMatch() { const gameId = document.getElementById('gameSelect').value; if(!gameId || currentMatchPlayers.length===0) return alert('Selecione jogo e jogadores'); const game = games.find(g=>g.id===gameId); if(!game) return; let maxScore=-1, winnerId=null; currentMatchPlayers.forEach(p=>{ let score=currentMatchScores[p.id]||0; if(score>maxScore){ maxScore=score; winnerId=p.id; } }); const winner = players.find(p=>p.id===winnerId); if(!winner) return; const duration = matchTimerSeconds; const batch = db.batch(); // atualizar vencedor e participantes
-        const winnerRef = db.collection("players").doc(winnerId);
-        batch.update(winnerRef, { wins: firebase.firestore.FieldValue.increment(1), matches: firebase.firestore.FieldValue.increment(1) });
-        for(let p of currentMatchPlayers){ if(p.id !== winnerId) batch.update(db.collection("players").doc(p.id), { matches: firebase.firestore.FieldValue.increment(1) }); }
-        const gameRef = db.collection("games").doc(gameId);
-        batch.update(gameRef, { matches: firebase.firestore.FieldValue.increment(1), lastDate: new Date().toLocaleDateString('pt-BR') });
-        const matchData = { gameId, gameName: game.name, winnerId, winnerName: winner.name, players: currentMatchPlayers.map(p=>({ id:p.id, name:p.name, score:currentMatchScores[p.id]||0 })), duration, date: new Date().toLocaleString(), timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-        const matchRef = db.collection("matches").doc();
-        batch.set(matchRef, matchData);
-        await batch.commit();
-        alert(`Partida finalizada! Vencedor: ${winner.name}`);
-        resetMatchForm();
+    // Filtros e renderização
+    function filterAndRenderPlayers() {
+        const filter = document.getElementById('playerFilter').value.toLowerCase();
+        const listDiv = document.getElementById('playersList');
+        if(!players.length){ listDiv.innerHTML='<div class="empty-state">Nenhum jogador</div>'; return; }
+        const filtered = players.filter(p=>p.name.toLowerCase().includes(filter));
+        listDiv.innerHTML = filtered.map(p=>`<div class="player-card"><div class="player-card-header"><div class="player-name">${p.name}</div><button class="btn btn-danger btn-small" onclick="deletePlayer('${p.id}')">🗑️</button></div><div class="player-stats"><div><div class="player-stat-value">${p.wins}</div><div>Vitórias</div></div><div><div class="player-stat-value">${p.matches}</div><div>Partidas</div></div><div><div class="player-stat-value">${p.matches?Math.round(p.wins/p.matches*100):0}%</div><div>Taxa</div></div></div>${p.lastGame?`<div style="margin-top:8px;background:rgba(20,184,166,0.1);padding:6px;border-radius:8px">📅 ${p.lastGame} - ${p.lastDate}</div>`:''}</div>`).join('');
     }
-    function resetMatchForm() { currentMatchPlayers=[]; currentMatchScores={}; matchTimerSeconds=0; if(matchTimerInterval)clearInterval(matchTimerInterval); isMatchTimerRunning=false; document.getElementById('matchTimerDisplay').innerText='00:00:00'; document.getElementById('scoreboardContainer').style.display='none'; document.getElementById('gameSelect').value=''; renderPlayerSelectionGrid(); }
-    function startMatchTimer() { if(isMatchTimerRunning)return; isMatchTimerRunning=true; matchTimerInterval=setInterval(()=>{ matchTimerSeconds++; const h=Math.floor(matchTimerSeconds/3600), m=Math.floor((matchTimerSeconds%3600)/60), s=matchTimerSeconds%60; document.getElementById('matchTimerDisplay').innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; },1000); }
-    function pauseMatchTimer() { isMatchTimerRunning=false; if(matchTimerInterval)clearInterval(matchTimerInterval); }
-    function resetMatchTimer() { pauseMatchTimer(); matchTimerSeconds=0; document.getElementById('matchTimerDisplay').innerText='00:00:00'; }
-    function updateGameSelect() { const select = document.getElementById('gameSelect'); if(select) select.innerHTML = '<option value="">Selecione um jogo</option>' + games.map(g=>`<option value="${g.id}">${g.name}</option>`).join(''); }
-
-    // filtros UI
-    function filterAndRenderPlayers() { const filter = document.getElementById('playerFilter').value.toLowerCase(); const listDiv=document.getElementById('playersList'); if(!players.length){ listDiv.innerHTML='<div class="empty-state">Nenhum jogador</div>'; return; } const filtered=players.filter(p=>p.name.toLowerCase().includes(filter)); listDiv.innerHTML = filtered.map(p=>`<div class="player-card"><div class="player-card-header"><div class="player-name">${p.name}</div><button class="btn btn-danger btn-small" onclick="deletePlayer('${p.id}')">🗑️</button></div><div class="player-stats"><div><div class="player-stat-value">${p.wins}</div><div>Vitórias</div></div><div><div class="player-stat-value">${p.matches}</div><div>Partidas</div></div><div><div class="player-stat-value">${p.matches?Math.round(p.wins/p.matches*100):0}%</div><div>Taxa</div></div></div>${p.lastGame?`<div style="margin-top:8px;background:rgba(20,184,166,0.1);padding:6px;border-radius:8px">📅 ${p.lastGame} - ${p.lastDate}</div>`:''}</div>`).join(''); }
     function clearPlayerFilter() { document.getElementById('playerFilter').value=''; filterAndRenderPlayers(); }
-    function filterAndRenderGames() { const filter=document.getElementById('gameFilter').value.toLowerCase(); const listDiv=document.getElementById('gamesList'); if(!games.length){ listDiv.innerHTML='<div class="empty-state">Nenhum jogo</div>'; return; } const filtered=games.filter(g=>g.name.toLowerCase().includes(filter)); listDiv.innerHTML=filtered.map(g=>`<div class="player-card"><div class="player-card-header"><div class="player-name">${g.name}</div><button class="btn btn-danger btn-small" onclick="deleteGame('${g.id}')">🗑️</button></div><div class="player-stats"><div><div class="player-stat-value">${g.matches}</div><div>Partidas</div></div></div>${g.lastDate?`<div>📅 Última: ${g.lastDate}</div>`:''}</div>`).join(''); }
+    function filterAndRenderGames() {
+        const filter = document.getElementById('gameFilter').value.toLowerCase();
+        const listDiv = document.getElementById('gamesList');
+        if(!games.length){ listDiv.innerHTML='<div class="empty-state">Nenhum jogo</div>'; return; }
+        const filtered = games.filter(g=>g.name.toLowerCase().includes(filter));
+        listDiv.innerHTML = filtered.map(g=>`<div class="player-card"><div class="player-card-header"><div class="player-name">${g.name}</div><button class="btn btn-danger btn-small" onclick="deleteGame('${g.id}')">🗑️</button></div><div class="player-stats"><div><div class="player-stat-value">${g.matches}</div><div>Partidas</div></div></div>${g.lastDate?`<div>📅 Última: ${g.lastDate}</div>`:''}</div>`).join('');
+    }
     function clearGameFilter() { document.getElementById('gameFilter').value=''; filterAndRenderGames(); }
 
-    function switchTab(tabName) { document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(tabName).classList.add('active'); event.target.classList.add('active'); }
+    // Seleção de jogadores na partida
+    function renderPlayerSelectionGrid() {
+        const grid = document.getElementById('playersSelectionGrid');
+        if(!grid) return;
+        grid.innerHTML = players.map(p => `<label class="player-checkbox"><input type="checkbox" value="${p.id}" onchange="updatePlayerSelection()"><span class="player-checkbox-label">${p.name}</span></label>`).join('');
+    }
+    function updatePlayerSelection() {
+        const checkboxes = document.querySelectorAll('#playersSelectionGrid input:checked');
+        if(checkboxes.length>4){ alert('Máximo 4 jogadores'); checkboxes[checkboxes.length-1].checked=false; return; }
+        currentMatchPlayers = Array.from(checkboxes).map(cb=>{ const pid=cb.value; const pl=players.find(p=>p.id===pid); return { id:pid, name:pl?.name }; });
+        renderScoreboardUI();
+    }
+    function renderScoreboardUI() {
+        const container = document.getElementById('matchScoreboard');
+        const parentDiv = document.getElementById('scoreboardContainer');
+        if(!currentMatchPlayers.length){ parentDiv.style.display='none'; return; }
+        parentDiv.style.display='block';
+        container.innerHTML = currentMatchPlayers.map(p=>`<div class="player-scoreboard"><div class="scoreboard-name">${p.name}</div><div class="scoreboard-score" id="liveScore-${p.id}">${currentMatchScores[p.id]||0}</div><div><button class="score-button minus" onclick="updateMatchScore('${p.id}',-1)">-1</button><button class="score-button plus" onclick="updateMatchScore('${p.id}',1)">+1</button><button class="score-button minus" onclick="updateMatchScore('${p.id}',-5)">-5</button><button class="score-button plus" onclick="updateMatchScore('${p.id}',5)">+5</button></div></div>`).join('');
+        currentMatchPlayers.forEach(p=>{ if(currentMatchScores[p.id]===undefined) currentMatchScores[p.id]=0; });
+    }
+    function updateMatchScore(pid, delta) {
+        currentMatchScores[pid] = (currentMatchScores[pid]||0) + delta;
+        if(currentMatchScores[pid]<0) currentMatchScores[pid]=0;
+        const el = document.getElementById(`liveScore-${pid}`);
+        if(el) el.innerText = currentMatchScores[pid];
+    }
+    function startMatch(){ if(!currentMatchPlayers.length) alert('Selecione jogadores'); else alert('Partida pronta! Use o cronômetro e os botões de +1/-1.'); }
+    function startMatchTimer(){ if(isMatchTimerRunning) return; isMatchTimerRunning=true; matchTimerInterval=setInterval(()=>{ matchTimerSeconds++; const h=Math.floor(matchTimerSeconds/3600), m=Math.floor((matchTimerSeconds%3600)/60), s=matchTimerSeconds%60; document.getElementById('matchTimerDisplay').innerText=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; },1000); }
+    function pauseMatchTimer(){ isMatchTimerRunning=false; if(matchTimerInterval) clearInterval(matchTimerInterval); }
+    function resetMatchTimer(){ pauseMatchTimer(); matchTimerSeconds=0; document.getElementById('matchTimerDisplay').innerText='00:00:00'; }
+    function updateGameSelect() { const select = document.getElementById('gameSelect'); if(select) select.innerHTML = '<option value="">Selecione um jogo</option>' + games.map(g=>`<option value="${g.id}">${g.name}</option>`).join(''); }
 
-    // Inicialização com auth anônimo
-    auth.signInAnonymously().then(async () => { await seedIfEmpty(); subscribeToFirestore(); }).catch(err => console.warn("Auth anônimo falhou, mas regras públicas também funcionam", err));
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        if(window.event) window.event.target.classList.add('active');
+    }
+
+    loadData();
+    refreshUI();
 </script>
 </body>
 </html>
