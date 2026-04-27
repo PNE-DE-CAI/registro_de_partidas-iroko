@@ -197,6 +197,16 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
+    // ============= SUPRIMIR ERRO DE EXTENSÃO =============
+    window.addEventListener('unhandledrejection', event => {
+        if (event.reason && event.reason.message && event.reason.message.includes('message port closed')) {
+            event.preventDefault();
+            // Opcional: console.warn('(Aviso de extensão suprimido)');
+            return;
+        }
+        console.error('Erro não tratado:', event.reason);
+    });
+
     // ============= VARIÁVEIS GLOBAIS =============
     let currentUser = null;
     let players = [];
@@ -209,7 +219,7 @@
     let matchTimerInterval = null;
     let isMatchTimerRunning = false;
 
-    // ============= DADOS PADRÃO (32 jogadores e 164 jogos) =============
+    // ============= DADOS PADRÃO (32 jogadores) =============
     const DEFAULT_PLAYERS = [
         { name: "Miro King Sqn", wins: 0, matches: 1991, lastGame: "Ninja Camp", lastDate: "abr. 21, 2026" },
         { name: "Thi Thiago", wins: 0, matches: 501, lastGame: "Luna Maria", lastDate: "dez. 28, 2025" },
@@ -371,10 +381,9 @@
                     <div class="player-stat-item"><div class="player-stat-value">${p.matches}</div><div class="player-stat-label">Partidas</div></div>
                     <div class="player-stat-item"><div class="player-stat-value">${p.matches ? ((p.wins / p.matches) * 100).toFixed(0) : 0}%</div><div class="player-stat-label">Taxa</div></div>
                 </div>
-                ${p.lastGame ? `<div style="margin-top:12px; font-size:0.85rem; background:rgba(20,184,166,0.1); padding:8px; border-radius:8px;">📅 ${p.lastGame} - ${p.lastDate}</div>` : ''}
+                ${p.lastGame ? `<div style="margin-top:12px; font-size:0.85rem; background:rgba(20,184,166,0.1); padding:8px; border-radius:8px;">📅 ${escapeHtml(p.lastGame)} - ${p.lastDate}</div>` : ''}
             </div>
         `).join('');
-        // Event delegation for delete buttons
         document.querySelectorAll('#playersList button[data-action="deletePlayer"]').forEach(btn => {
             btn.removeEventListener('click', handlePlayerDelete);
             btn.addEventListener('click', handlePlayerDelete);
@@ -495,7 +504,7 @@
             <div class="grid-3"><div class="card"><div class="stat-value">${matches.length}</div><div class="stat-label">Total Partidas</div></div>
             <div class="card"><div class="stat-value">${new Set(matches.map(m => m.gameId)).size}</div><div class="stat-label">Jogos Diferentes</div></div>
             <div class="card"><div class="stat-value">${(matches.length / new Set(matches.map(m => m.gameId)).size).toFixed(1)}</div><div class="stat-label">Média/Jogo</div></div></div>
-            <div class="card"><div class="card-title">Últimas Partidas</div>${matches.slice(0, 10).map(m => `<div class="player-card"><strong>${m.gameName}</strong> - ${m.date}<br>🏆 ${m.winnerName}</div>`).join('')}</div>
+            <div class="card"><div class="card-title">Últimas Partidas</div>${matches.slice(0, 10).map(m => `<div class="player-card"><strong>${escapeHtml(m.gameName)}</strong> - ${m.date}<br>🏆 ${escapeHtml(m.winnerName)}</div>`).join('')}</div>
         `;
     }
 
